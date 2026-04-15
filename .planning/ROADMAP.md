@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Go module init, standard layout, and legacy archival
+- [x] 01-01: Go module init, standard layout, and legacy archival
 - [ ] 01-02: CI workflow and goreleaser configuration
 
 ### Phase 2: Server, Auth & Engine Resources

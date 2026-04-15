@@ -9,9 +9,9 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### Project Setup
 
-- [ ] **SETUP-01**: Go module initialized with `modelcontextprotocol/go-sdk` as only external dependency
-- [ ] **SETUP-02**: Standard Go project layout (`cmd/serpapi-mcp/main.go`, `internal/` packages)
-- [ ] **SETUP-03**: Legacy Python code moved to `legacy/` directory (src/, build-engines.py, pyproject.toml, etc.)
+- [x] **SETUP-01**: Go module initialized with `modelcontextprotocol/go-sdk` as only external dependency
+- [x] **SETUP-02**: Standard Go project layout (`cmd/serpapi-mcp/main.go`, `internal/` packages)
+- [x] **SETUP-03**: Legacy Python code moved to `legacy/` directory (src/, build-engines.py, pyproject.toml, etc.)
 - [ ] **SETUP-04**: CI workflow for Go: lint (golangci-lint), vet, test on PRs
 - [ ] **SETUP-05**: goreleaser configuration for multi-platform binary builds (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64)
 
@@ -102,9 +102,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 1 | Pending |
-| SETUP-02 | Phase 1 | Pending |
-| SETUP-03 | Phase 1 | Pending |
+| SETUP-01 | Phase 1 | Complete |
+| SETUP-02 | Phase 1 | Complete |
+| SETUP-03 | Phase 1 | Complete |
 | SETUP-04 | Phase 1 | Pending |
 | SETUP-05 | Phase 1 | Pending |
 | MCP-01 | Phase 2 | Pending |
