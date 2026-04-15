@@ -23,7 +23,7 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 
 ### Active
 
-- [ ] Go MCP server with Streamable HTTP transport (markmcclain/mcp-go-sdk or similar)
+- [ ] Go MCP server with Streamable HTTP transport (modelcontextprotocol/go-sdk)
 - [ ] API key authentication middleware (path `/{KEY}/mcp` and `Authorization: Bearer` header)
 - [ ] Search tool delegating to SerpApi HTTP API
 - [ ] Engine parameter schemas served as MCP resources (`serpapi://engines` and `serpapi://engines/<engine>`)
@@ -34,8 +34,13 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 - [ ] Input validation: reject invalid engine names, missing required params, invalid mode
 - [ ] Startup validation of engine schemas (fail fast on corrupt/missing JSON)
 - [ ] Structured logging with request correlation IDs
-- [ ] Multi-platform static binary builds (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64)
-- [ ] Legacy Python code moved to `legacy/` directory
+
+### Validated in Phase 01: Project Foundation
+
+- ✓ Multi-platform static binary builds (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64) — goreleaser configured, 5 platform targets
+- ✓ Legacy Python code moved to `legacy/` directory — archived, out of Go build path
+- ✓ Go module initialized with standard layout — `modelcontextprotocol/go-sdk` is sole external dependency
+- ✓ CI workflow runs on PR to main — golangci-lint, go vet, go test
 
 ### Out of Scope
 
@@ -49,7 +54,7 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 
 ## Context
 
-- **Existing codebase**: Python MCP server (`src/server.py`) using FastMCP on Starlette + uvicorn — being replaced
+- **Existing codebase**: Python MCP server archived in `legacy/src/server.py` — reference for Go rewrite
 - **Engine schemas**: 100+ engines as JSON in `engines/` — will be consumed by Go server
 - **Previous roadmap**: 4-phase Python hardening roadmap (tests → types → errors → validation) is superseded by this Go rewrite
 - **Deployment shift**: Moving from AWS Copilot + Docker to multi-platform static binaries
@@ -69,10 +74,10 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Go rewrite | Static binaries, no runtime dependencies, type-safe, better performance for concurrent MCP clients | — Pending |
-| Multi-platform binaries | Simplifies deployment, no Docker needed, matches Go's cross-compilation strength | — Pending |
+| Go rewrite | Static binaries, no runtime dependencies, type-safe, better performance for concurrent MCP clients | ✓ Phase 01: Go module initialized, builds cleanly |
+| Multi-platform binaries | Simplifies deployment, no Docker needed, matches Go's cross-compilation strength | ✓ Phase 01: goreleaser configured for 5 platforms |
 | Faithful port + improvements | Keeps API compatibility while fixing known issues (error handling, validation, logging) | — Pending |
-| Archive Python to `legacy/` | Preserve reference implementation for comparison during rewrite | — Pending |
+| Archive Python to `legacy/` | Preserve reference implementation for comparison during rewrite | ✓ Phase 01: All Python files in legacy/ |
 
 ## Current Milestone: v1.0 Go Rewrite
 
@@ -106,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-04-15 after v1.0 milestone definition*
+*Last updated: 2026-04-15 after Phase 01 completion*
