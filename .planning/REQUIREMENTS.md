@@ -1,84 +1,100 @@
-# Requirements: SerpApi MCP Server
+# Requirements: SerpApi MCP Server — Go Rewrite
 
 **Defined:** 2026-04-15
-**Core Value:** AI agents can search any SerpApi-supported engine through a single, authenticated MCP endpoint with structured parameter discovery.
+**Core Value:** AI agents can search any SerpApi-supported engine through a single, authenticated MCP endpoint with structured parameter discovery and proper MCP-compliant error handling.
 
 ## v1 Requirements
 
-Requirements for hardening the existing server. Each maps to roadmap phases.
+Requirements for the Go rewrite. Each maps to roadmap phases.
 
-### Testing
+### Project Setup
 
-- [ ] **TEST-01**: Unit tests for search tool using FastMCP Client (in-memory, no HTTP)
-- [ ] **TEST-02**: Unit tests for engine resource loading and schema retrieval via FastMCP Transport
-- [ ] **TEST-03**: Integration tests for API key authentication middleware via Starlette TestClient
-- [ ] **TEST-04**: Integration tests for healthcheck endpoint
-- [ ] **TEST-05**: Unit tests for error handling paths (rate limit, invalid key, server errors) using responses mock
-- [ ] **TEST-06**: Unit tests for compact mode field removal
-- [ ] **TEST-07**: Unit tests for emit_metric CloudWatch EMF format
-- [ ] **TEST-08**: Refactor module-level engine registration into a callable `register_engines()` function to enable test isolation
+- [ ] **SETUP-01**: Go module initialized with `modelcontextprotocol/go-sdk` as only external dependency
+- [ ] **SETUP-02**: Standard Go project layout (`cmd/serpapi-mcp/main.go`, `internal/` packages)
+- [ ] **SETUP-03**: Legacy Python code moved to `legacy/` directory (src/, build-engines.py, pyproject.toml, etc.)
+- [ ] **SETUP-04**: CI workflow for Go: lint (golangci-lint), vet, test on PRs
+- [ ] **SETUP-05**: goreleaser configuration for multi-platform binary builds (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64)
 
-### Type Safety
+### MCP Server Core
 
-- [ ] **TYPE-01**: Add type annotations to all functions in server.py (mypy `disallow_untyped_defs` compliance)
-- [ ] **TYPE-02**: Add type annotations to all functions in build-engines.py
-- [ ] **TYPE-03**: mypy strict mode passes with zero errors on the entire codebase
+- [ ] **MCP-01**: Streamable HTTP transport using `modelcontextprotocol/go-sdk` StreamableHTTPHandler
+- [ ] **MCP-02**: Healthcheck endpoint at `/health` returning 200 OK
+- [ ] **MCP-03**: CORS support matching Python server behavior
+- [ ] **MCP-04**: Graceful shutdown on SIGINT/SIGTERM using `signal.NotifyContext()`
 
-### Error Handling
+### Authentication
 
-- [ ] **ERR-01**: Replace string-prefix error returns (`"Error: ..."`) with FastMCP `ToolError` exceptions for MCP-compliant error signaling
-- [ ] **ERR-02**: Replace string-matching on exception messages (`"429" in str(e)`) with proper exception type and status code checking
-- [ ] **ERR-03**: Wrap blocking sync `serpapi.search()` call in `asyncio.to_thread()` to prevent event loop blocking
-- [ ] **ERR-04**: Fix mutable default argument `params: dict[str, Any] = {}` to `params: dict[str, Any] | None = None`
-- [ ] **ERR-05**: Consistent error response format across all error paths
+- [ ] **AUTH-01**: API key extraction from URL path (`/{KEY}/mcp`) — maintains Python server compatibility
+- [ ] **AUTH-02**: API key extraction from `Authorization: Bearer {KEY}` header — maintains Python server compatibility
+- [ ] **AUTH-03**: Auth middleware composed with StreamableHTTPHandler via standard Go `http.Handler` wrapping
 
-### Validation
+### Search Tool
 
-- [ ] **VAL-01**: Validate `params` input against engine schema on startup (fail fast on corrupt/missing engine JSON)
-- [ ] **VAL-02**: Validate `mode` parameter accepts only "complete" or "compact" at the tool input schema level (not in function body)
-- [ ] **VAL-03**: Structural validation of engine JSON files (required keys: engine, params, common_params)
+- [ ] **SRCH-01**: Single `search` tool accepting `params` dict with `engine`, `mode`, and SerpApi parameters
+- [ ] **SRCH-02**: Default engine is `google_light` (matching Python server)
+- [ ] **SRCH-03**: Complete mode returns full SerpApi response
+- [ ] **SRCH-04**: Compact mode removes specified fields from response
+- [ ] **SRCH-05**: MCP-compliant error responses using `IsError: true` flag (not string prefixes)
+- [ ] **SRCH-06**: SerpApi HTTP calls via `net/http.Client` with reasonable timeouts
+- [ ] **SRCH-07**: Proper handling of SerpApi rate limits (429), auth errors (401/403), and server errors (5xx)
+
+### Engine Resources
+
+- [ ] **ENG-01**: Engine schemas loaded from `engines/*.json` at startup
+- [ ] **ENG-02**: Engine list resource at `serpapi://engines` returning all available engine names
+- [ ] **ENG-03**: Per-engine schema resource at `serpapi://engines/{engine}` returning parameter schema
+- [ ] **ENG-04**: Startup validation of engine schemas — fail fast on corrupt or missing JSON
+- [ ] **ENG-05**: Engine schema generation remains via `build-engines.py` (Python script in CI, not ported to Go)
+
+### Input Validation
+
+- [ ] **VAL-01**: Reject invalid engine names with clear error message listing available engines
+- [ ] **VAL-02**: Validate `mode` parameter accepts only "complete" or "compact"
+- [ ] **VAL-03**: Validate required SerpApi parameters per engine schema
 
 ### Observability
 
-- [ ] **OBS-01**: Add request correlation IDs to middleware chain for traceability across logs
-- [ ] **OBS-02**: Replace `logger.info(json.dumps(emf_event))` with FastMCP Context logging (`ctx.info()` / `ctx.debug()`)
-- [ ] **OBS-03**: Add `ErrorHandlingMiddleware` from FastMCP for uncaught exception handling
+- [ ] **OBS-01**: Structured logging via `log/slog` with request correlation IDs
+- [ ] **OBS-02**: Correlation ID included in all log entries for a request
+- [ ] **OBS-03**: Startup log message confirming server ready, port, and engine count
 
-### CI
+### Testing
 
-- [ ] **CI-01**: Replace flake8 with ruff in dev dependencies (zero config migration, 10-100x faster)
-- [ ] **CI-02**: Upgrade pytest-asyncio to >=0.24 for stable `asyncio_mode = "auto"` support
-- [ ] **CI-03**: Add mypy check to CI pipeline
-- [ ] **CI-04**: Add pytest to CI pipeline
+- [ ] **TEST-01**: Unit tests for search tool (mocking SerpApi HTTP responses)
+- [ ] **TEST-02**: Unit tests for engine resource loading and schema retrieval
+- [ ] **TEST-03**: Integration tests for auth middleware (path-based and header-based key extraction)
+- [ ] **TEST-04**: Integration tests for healthcheck endpoint
+- [ ] **TEST-05**: Unit tests for compact mode field removal
+- [ ] **TEST-06**: Unit tests for input validation (invalid engine, invalid mode, missing params)
 
 ## v2 Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+Deferred to future release.
 
 ### MCP Features
 
-- **MCP-01**: MCP Prompts for curated search templates (e.g., "search news about {topic}")
-- **MCP-02**: Progress reporting via `ctx.report_progress()` for long-running searches
-- **MCP-03**: Sampling capability for client-side result processing
+- **MCP-V2-01**: MCP Prompts for curated search templates
+- **MCP-V2-02**: MCP Completions for engine and parameter auto-suggestion
+- **MCP-V2-03**: Progress reporting for long-running searches
 
 ### Infrastructure
 
-- **INFRA-01**: Structured logging middleware (FastMCP's `StructuredLoggingMiddleware`)
-- **INFRA-02**: Graceful shutdown handling
-- **INFRA-03**: Response compression middleware
-- **INFRA-04**: Request timeout configuration
+- **INFRA-01**: Docker image build (alternative deployment)
+- **INFRA-02**: Response compression middleware
+- **INFRA-03**: Request timeout configuration via CLI flags
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| WebSocket/SSE transport | Streamable HTTP is the current transport; MCP spec is moving toward Streamable HTTP |
-| Multi-tenant API key management | Each request carries its own key; no server-side key store needed |
-| Result caching | SerpApi caches on their side; duplicating adds complexity with no value |
-| Rate limiting on server side | SerpApi handles rate limiting per API key; server-side limiting adds latency |
-| OAuth/API key storage | Auth is stateless; no database or session store |
-| Admin dashboard | Operations handled via AWS CloudWatch and Copilot |
-| Database or persistent storage | Server is stateless by design |
+| OAuth/API key storage | Auth is stateless; each request carries its own key |
+| Result caching | SerpApi caches on their side |
+| Admin dashboard | Operations handled via binary flags and logs |
+| Database/persistent storage | Server is stateless by design |
+| SSE/WebSocket transport | Streamable HTTP is MCP's current standard |
+| Python build-engines.py port to Go | Keep Python script in CI; Go server only consumes JSON |
+| CloudWatch EMF metrics | Go binary has no AWS-specific dependencies |
+| serpapi Python client port | Go calls SerpApi HTTP API directly |
 
 ## Traceability
 
@@ -86,38 +102,48 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 1 | Pending |
-| TEST-02 | Phase 1 | Pending |
-| TEST-03 | Phase 1 | Pending |
-| TEST-04 | Phase 1 | Pending |
-| TEST-05 | Phase 1 | Pending |
-| TEST-06 | Phase 1 | Pending |
-| TEST-07 | Phase 1 | Pending |
-| TEST-08 | Phase 1 | Pending |
-| TYPE-01 | Phase 2 | Pending |
-| TYPE-02 | Phase 2 | Pending |
-| TYPE-03 | Phase 2 | Pending |
-| ERR-01 | Phase 3 | Pending |
-| ERR-02 | Phase 3 | Pending |
-| ERR-03 | Phase 3 | Pending |
-| ERR-04 | Phase 1 | Pending |
-| ERR-05 | Phase 3 | Pending |
-| VAL-01 | Phase 4 | Pending |
-| VAL-02 | Phase 4 | Pending |
-| VAL-03 | Phase 4 | Pending |
-| OBS-01 | Phase 4 | Pending |
-| OBS-02 | Phase 4 | Pending |
-| OBS-03 | Phase 3 | Pending |
-| CI-01 | Phase 2 | Pending |
-| CI-02 | Phase 1 | Pending |
-| CI-03 | Phase 2 | Pending |
-| CI-04 | Phase 1 | Pending |
+| SETUP-01 | — | Pending |
+| SETUP-02 | — | Pending |
+| SETUP-03 | — | Pending |
+| SETUP-04 | — | Pending |
+| SETUP-05 | — | Pending |
+| MCP-01 | — | Pending |
+| MCP-02 | — | Pending |
+| MCP-03 | — | Pending |
+| MCP-04 | — | Pending |
+| AUTH-01 | — | Pending |
+| AUTH-02 | — | Pending |
+| AUTH-03 | — | Pending |
+| SRCH-01 | — | Pending |
+| SRCH-02 | — | Pending |
+| SRCH-03 | — | Pending |
+| SRCH-04 | — | Pending |
+| SRCH-05 | — | Pending |
+| SRCH-06 | — | Pending |
+| SRCH-07 | — | Pending |
+| ENG-01 | — | Pending |
+| ENG-02 | — | Pending |
+| ENG-03 | — | Pending |
+| ENG-04 | — | Pending |
+| ENG-05 | — | Pending |
+| VAL-01 | — | Pending |
+| VAL-02 | — | Pending |
+| VAL-03 | — | Pending |
+| OBS-01 | — | Pending |
+| OBS-02 | — | Pending |
+| OBS-03 | — | Pending |
+| TEST-01 | — | Pending |
+| TEST-02 | — | Pending |
+| TEST-03 | — | Pending |
+| TEST-04 | — | Pending |
+| TEST-05 | — | Pending |
+| TEST-06 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 26 total
-- Mapped to phases: 26
-- Unmapped: 0 ✓
+- v1 requirements: 34 total
+- Mapped to phases: 0
+- Unmapped: 34 ⚠️
 
 ---
 *Requirements defined: 2026-04-15*
-*Last updated: 2026-04-15 after roadmap creation*
+*Last updated: 2026-04-15 after Go rewrite milestone definition*
