@@ -1,214 +1,223 @@
 # Technology Stack
 
-**Project:** SerpApi MCP Server — Hardening & Extension
+**Project:** SerpApi MCP Server (Go Rewrite)
 **Researched:** 2026-04-15
-**Existing stack baseline:** FastMCP 2.13+ on Starlette + uvicorn, Python 3.13, uv package manager
+**Mode:** Ecosystem (Stack dimension for Go MCP server)
+**Previous stack (reference only):** FastMCP on Starlette + uvicorn, Python 3.13 — being replaced
 
 ## Recommended Stack
 
-### Core Framework (existing, verified)
+### Core Language & Runtime
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| FastMCP | >=2.13.0.2 | MCP server framework | Already in use. Best Python MCP framework. Provides tools, resources, `Client` for testing, middleware. Active development by Prefect team. |
-| Starlette | >=0.50.0 | ASGI framework | FastMCP's HTTP transport layer. Already in use. `TestClient` for sync middleware tests, `httpx.AsyncClient` + `ASGITransport` for async integration tests. |
-| uvicorn | >=0.38.0 | ASGI server | Production-grade. Already in use. Supports `ws="none"` for HTTP-only mode. |
-| serpapi (Python) | >=0.1.5 | SerpApi client library | Official Python client. Provides `serpapi.search()`, `SerpResults`, and exception types. **Uses `requests` internally, not `httpx`** — critical for test mocking strategy. |
+| Go | 1.25+ | Language runtime | Required by modelcontextprotocol/go-sdk v1.4.1+ (uses `http.CrossOriginProtection`); provides enhanced ServeMux, mature slog, range-over-func; Go 1.25 was released Aug 2025 — stable toolchain as of April 2026 |
 
-### Testing Framework
+### MCP SDK
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| **pytest** | >=7.0 (existing) | Test runner and framework | Already in dev deps. Industry standard for Python. Powerful fixture system, parametrize support. No reason to switch. |
-| **pytest-asyncio** | **>=0.24.0** (upgrade from 0.21) | Async test execution | Required because all MCP tool/resource calls are `async`. Upgrade to >=0.24 for stable `asyncio_mode = "auto"`. Version 0.21 had issues with auto mode. Auto mode eliminates `@pytest.mark.asyncio` boilerplate. |
-| **responses** | **>=0.25.0** (new) | Mock `requests` library HTTP calls | **Critical discovery:** `serpapi` Python client uses `requests` (not `httpx`) internally. `responses` intercepts `requests` calls at the transport level, enabling realistic mocking of `serpapi.search()` without hitting the real API. `pytest-httpx` would NOT work here because `serpapi` doesn't use `httpx`. |
-| **httpx** | >=0.25.0 (existing) | Async HTTP test client | Already a production dep. Use `httpx.AsyncClient` with `httpx.ASGITransport` for integration tests of the Starlette app (middleware, auth, routing). No new dependency. |
-| **FastMCP Client** | (bundled, >=2.13) | In-memory MCP protocol testing | `Client(mcp_server)` with `FastMCPTransport` for zero-network testing. Canonical way to test MCP tools and resources. No HTTP server needed. |
-| **FastMCP `run_server_async`** | (bundled, >=2.13) | HTTP transport integration testing | `fastmcp.utilities.tests.run_server_async` provides an in-process HTTP server context manager. Use for full Streamable HTTP transport tests with `StreamableHttpTransport`. |
+| modelcontextprotocol/go-sdk | v1.5.0+ | MCP server & client SDK | Official MCP org SDK maintained with Google; stable v1.x API with backward compatibility guarantees; `NewStreamableHTTPHandler` returns `http.Handler` for natural middleware composition; `getServer func(*http.Request) *Server` pattern enables per-request API key injection; typed tool handlers with generics (`AddTool[In, Out]`); auto JSON schema generation from Go struct `jsonschema` tags; built-in DNS rebinding protection and cross-origin request validation; actively tracks MCP spec (supports 2025-11-25) |
 
-### Type Checking & Linting
+### HTTP Transport
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| **mypy** | >=1.5.0 (existing) | Static type checker | Already configured with `disallow_untyped_defs = true`. Project constraint is mypy compliance — all functions need annotations. No alternative needed. |
-| **black** | >=23.0 (existing) | Code formatter | Already configured with `line-length = 100`. Zero-config, consistent. |
-| **isort** | >=5.12.0 (existing) | Import sorter | Already configured with `profile=black`. Keeps imports consistent. |
-| **ruff** | **>=0.8.0** (new, replaces flake8) | Linter | **Replaces `flake8`.** Ruff is 10-100x faster, has zero-config flake8 compatibility, auto-fix, and 100+ more rules. The project lists flake8 in dev deps but has NO `.flake8` config file — ruff is a strict upgrade. Add ruff, remove flake8. |
+| net/http | stdlib | HTTP server, routing, middleware chain | Go 1.22+ enhanced ServeMux supports method-based routing (`GET /healthcheck`); only 2 routes needed (MCP endpoint + healthcheck) — no framework justified; official SDK returns `http.Handler` which composes directly with `http.HandleFunc` patterns |
+| CORS middleware | hand-written (~20 lines) | CORS headers | Policy is trivial: allow all origins, credentials, methods, headers. Writing a middleware function is simpler and zero-dependency vs pulling in `rs/cors` for 3 header sets. No origin-matching logic needed. |
 
-### Schema Validation
+### Logging
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| **jsonschema** | **>=4.23.0** (new) | Validate engine JSON schemas at startup | Lightweight, standards-compliant JSON Schema validator. Use to validate each `engines/*.json` file against a schema dict at startup. No heavier framework needed — engine schemas are simple flat dicts with predictable keys (`params`, `common_params`, each containing `{type, options, required, description, group}`). |
+| log/slog | stdlib (Go 1.21+) | Structured JSON logging with request correlation | Zero dependencies; `slog.Logger` is goroutine-safe; JSON handler built-in; this is a network-IO-bound proxy service — zerolog/zap's allocation benchmarks are irrelevant when each request spends milliseconds waiting for SerpApi; `slog.With("request_id", id)` gives correlation IDs without custom code |
 
-## Testing Strategy Detail
+### Build & Release
 
-### Layer 1: Unit Tests (FastMCP Client, in-memory)
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| goreleaser | v2.x | Cross-compilation, release automation, GitHub Releases | De-facto standard for Go binary distribution; handles all 5 target platforms with `CGO_ENABLED=0`; generates checksums, archives, changelogs; one-command `goreleaser release` workflow; no manual `GOOS=GOARCH=` scripts to maintain |
+| golangci-lint | v1.64+ | Static analysis aggregator | Runs 50+ linters in parallel; replaces individual tools (staticcheck, go vet, errcheck, gosec, etc.); CI-ready with `.golangci.yml` config; faster than running linters separately |
 
-```python
-from fastmcp import Client, FastMCP
+### Testing
 
-async def test_search_tool():
-    mcp = create_test_server()  # Fresh instance with mocked serpapi
-    async with Client(mcp) as client:
-        result = await client.call_tool("search", {"params": {"q": "test"}, "mode": "compact"})
-        assert result.data is not None
-```
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| testing | stdlib | Unit tests, table-driven tests | No framework needed; Go's `testing` package is sufficient; table-driven test pattern for engine validation and error cases |
+| net/http/httptest | stdlib | HTTP handler tests | `httptest.NewServer` and `httptest.NewRecorder` for testing middleware (auth, CORS) and MCP handler integration against real HTTP requests without network |
+| gotest.tools/v3 | v3.5+ | Assertion helpers | `assert.DeepEqual`, `assert.NilError`, `assert.Check` provide clearer failure messages than `t.Fatal()` without the opinionated framework overhead of testify; minimal dependency surface |
 
-**Why:** In-memory transport bypasses HTTP entirely. Fastest, most isolated tests. Validates MCP tool/resource contract without network overhead.
+### Supporting Libraries
 
-**Best for:** Tool logic, resource loading, parameter validation, error handling.
-
-### Layer 2: Integration Tests (Starlette TestClient)
-
-```python
-from starlette.testclient import TestClient
-
-def test_healthcheck():
-    app = create_starlette_app()
-    client = TestClient(app)
-    response = client.get("/healthcheck")
-    assert response.status_code == 200
-
-def test_api_key_missing():
-    client = TestClient(create_starlette_app())
-    response = client.post("/mcp", json={})
-    assert response.status_code == 401
-```
-
-**Why:** Starlette's `TestClient` wraps ASGI synchronously. Perfect for testing middleware (auth, CORS, metrics) and HTTP routing without starting uvicorn.
-
-**Best for:** `ApiKeyMiddleware` auth flows, healthcheck endpoint, CORS headers, 401/403 response formatting.
-
-### Layer 3: Mocking SerpApi Calls
-
-```python
-import responses
-import serpapi
-
-@responses.activate
-def test_search_with_mock():
-    responses.add(
-        responses.GET,
-        "https://serpapi.com/search",
-        json={"organic_results": [{"title": "Test"}]},
-        status=200,
-    )
-    result = serpapi.search({"q": "test", "api_key": "fake"})
-    assert result.as_dict()["organic_results"][0]["title"] == "Test"
-```
-
-**Why:** `serpapi` uses `requests` internally, not `httpx`. Using `responses` to intercept `requests` calls is more realistic than `unittest.mock.patch` because it tests the full call chain through the HTTP client layer. Catches issues like incorrect URL construction or header handling that `patch` would miss.
-
-### Layer 4: HTTP Transport Tests (FastMCP `run_server_async`)
-
-```python
-from fastmcp import Client
-from fastmcp.client.transports import StreamableHttpTransport
-from fastmcp.utilities.tests import run_server_async
-
-async def test_http_transport():
-    mcp = create_test_server()
-    async with run_server_async(mcp) as url:
-        async with Client(transport=StreamableHttpTransport(url)) as client:
-            result = await client.call_tool("search", {"params": {"q": "test"}})
-            assert result.data is not None
-```
-
-**Why:** Validates the full Streamable HTTP transport path. Essential for catching middleware + MCP protocol interaction bugs. Slower than in-memory tests, so use sparingly — only for smoke/integration tests.
-
-## Recommended pyproject.toml Configuration
-
-```toml
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py313"
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "I"]  # Flake8-equivalent + isort
-ignore = ["E501"]  # black handles line length
-```
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| encoding/json | stdlib | JSON marshaling/unmarshaling | All JSON handling: engine schemas, search results, MCP responses; `json.Marshal` and `json.Unmarshal` are sufficient — no third-party JSON library needed |
+| os / path/filepath | stdlib | File I/O | Loading engine JSON schemas from `engines/` directory at startup; `filepath.Glob("engines/*.json")` for discovery |
+| net/http | stdlib | SerpApi HTTP client | Call SerpApi search API directly via `http.Client` — no Go SerpApi client library needed (the Python `serpapi` package just wraps HTTP calls) |
+| context | stdlib | Request scoping, cancellation, API key propagation | `context.WithValue` for per-request API key; standard Go pattern; timeout propagation to SerpApi calls |
 
 ## Alternatives Considered
 
 | Category | Recommended | Alternative | Why Not |
 |----------|-------------|-------------|---------|
-| Mocking (SerpApi) | `responses` | `unittest.mock.patch("serpapi.search")` | `patch` is fragile — couples tests to internal call structure. `responses` intercepts at HTTP level, catches URL/header bugs. Use `patch` only for trivial unit tests where zero HTTP overhead is needed. |
-| Mocking (SerpApi) | `responses` | `pytest-httpx` | `serpapi` Python client uses `requests`, not `httpx`. `pytest-httpx` only intercepts `httpx.AsyncClient`/`httpx.Client` calls. **Will not work.** |
-| Linting | `ruff` | `flake8` | `flake8` is slower, requires separate config, and the project has no `.flake8` config. `ruff` is a superset of flake8 rules with auto-fix. Zero reason to stay on flake8. |
-| Schema validation | `jsonschema` | `pydantic` models | `pydantic` is overkill for flat JSON validation at startup. `jsonschema` is 50 lines of code, no model classes needed. `pydantic` is available as a transitive dep but adds ceremony for no benefit here. |
-| Schema validation | `jsonschema` | Manual `dict` key checks | Manual checks silently drift from reality. `jsonschema` is declarative, self-documenting, and catches all edge cases (missing keys, wrong types, unexpected values). |
-| Async testing | `pytest-asyncio` (auto mode) | `anyio` + `anyio.from_thread.run` | `anyio` is great for Trio-based code, but this project uses standard `asyncio`. `pytest-asyncio` is the standard, and `auto` mode removes boilerplate. |
-| HTTP test client | `httpx.AsyncClient + ASGITransport` | `Starlette TestClient` only | Both are valid. `TestClient` is simpler for sync middleware tests. `httpx.AsyncClient` is needed for async integration tests. **Use both** — TestClient for sync, AsyncClient for async. |
-| Metrics | CloudWatch EMF (current) | OpenTelemetry | CloudWatch EMF is appropriate for AWS deployment. Adding OTel would be over-engineering for a single-service deployment. Stick with EMF. |
+| MCP SDK | modelcontextprotocol/go-sdk | **mark3labs/mcp-go** v0.48.0 | **Pre-v1 — no API stability guarantee.** Community-maintained, not official; `NewStreamableHTTPServer.Start()` wraps HTTP lifecycle making middleware composition harder (our auth middleware would need `WithHTTPContextFunc` workarounds); acknowledged as inspiration by official SDK's README; risk of spec divergence as official SDK evolves; 8.6k stars demonstrate strong community but don't guarantee API stability |
+| MCP SDK | modelcontextprotocol/go-sdk | **trpc-group/trpc-mcp-go** | Niche SDK from Tencent's tRPC ecosystem; 73 code snippets vs 811 for official SDK; brings tRPC dependency tree; no compelling advantage for our use case; lower community adoption and documentation |
+| HTTP Framework | net/http stdlib | **go-chi/chi** v5 | Unnecessary — we have 2 routes (MCP endpoint + healthcheck); Go 1.22 ServeMux handles method-based routing; chi adds a dependency for features we don't use (middleware groups, URL parameter extraction, route groups) |
+| HTTP Framework | net/http stdlib | **gin-gonic/gin** | Massive overkill — gin's radix-tree router and middleware chain are designed for REST APIs with dozens of endpoints; we have 2 routes; gin would add ~100KB dependency for zero benefit; gin's `context.Context` replacement breaks stdlib patterns |
+| HTTP Framework | net/http stdlib | **labstack/echo** | Same reasoning as gin — framework overhead not justified for 2-endpoint server; echo's `echo.Context` is non-standard |
+| Logging | log/slog | **rs/zerolog** | Zerolog's zero-allocation advantage is irrelevant for a network-IO-bound proxy that spends 50-500ms per SerpApi call; adds dependency for no measurable benefit; slog produces identical JSON output; slog is stdlib — no version skew risk |
+| Logging | log/slog | **uber-go/zap** | Same as zerolog — CPU-bound benchmarking advantage doesn't apply; dependency adds coupling; slog has identical capabilities for our use case |
+| CORS | hand-written middleware | **rs/cors** | 3 header sets with no complex origin-matching logic; 20-line middleware function vs dependency; rs/cors adds configuration complexity we don't need |
+| Testing | gotest.tools/v3 | **stretchr/testify** | testify's suite pattern and assert/require dichotomy add more API surface than needed; gotest.tools is composable, lighter, and designed for stdlib-first Go testing; testify's `assert` vs `require` distinction creates inconsistent test patterns |
+| Build | goreleaser v2 | **manual go build scripts** | goreleaser handles checksums, archives, GitHub Release integration, and Homebrew taps automatically; manual scripts would reimplement all of this poorly and break across platforms |
+| Build | goreleaser v2 | **goreleaser v1** (deprecated) | v2 has better cross-compilation, cleaner YAML, and is the current release; v1 is no longer maintained |
+
+## Architecture Integration
+
+How the stack composes into the server architecture:
+
+```
+Request Flow:
+  HTTP Request
+    → net/http ServeMux (route: /{KEY}/mcp, /mcp, /healthcheck)
+    → API Key Middleware (extract key from path/header, rewrite path)
+    → CORS Middleware (add Access-Control-Allow-* headers)
+    → Request Logging Middleware (slog with request_id, method, path)
+    → StreamableHTTPHandler (modelcontextprotocol/go-sdk)
+      → MCP Server (tools and resources registered)
+        → search tool handler (calls SerpApi HTTP API)
+        → resource handlers (serve engine JSON schemas)
+```
+
+### Key Composition Pattern: Per-Request API Key Injection
+
+The official SDK's `NewStreamableHTTPHandler` takes a `getServer func(*http.Request) *mcp.Server`. This is the natural injection point for the existing Python auth model — resolve the API key *before* the MCP server sees the request:
+
+```go
+handler := mcp.NewStreamableHTTPHandler(
+    func(r *http.Request) *mcp.Server {
+        apiKey := r.Header.Get("X-API-Key") // set by our middleware
+        return newMCPServer(apiKey)          // server with key baked in
+    },
+    &mcp.StreamableHTTPOptions{
+        // Stateless: true — matches Python's stateless_http=True
+    },
+)
+```
+
+**Why this is better than mark3labs/mcp-go's context approach:**
+- Auth failures return `401` at the HTTP layer, not as MCP errors
+- The API key is resolved before the MCP server even exists
+- No `context.WithValue` needed for the key between middleware and tool handler
+- Matches the existing Python design where `request.state.api_key` is set by middleware
+
+### Middleware Chain Pattern
+
+```go
+mux := http.NewServeMux()
+
+// Healthcheck (no auth required)
+mux.HandleFunc("GET /healthcheck", healthcheckHandler)
+
+// MCP endpoint (auth required)
+mcpHandler := mcp.NewStreamableHTTPHandler(getServer, &mcp.StreamableHTTPOptions{})
+mux.Handle("/{key}/mcp", chain(mcpHandler, apiKeyMiddleware, corsMiddleware, loggingMiddleware))
+```
+
+## Go Version Rationale
+
+The official SDK **requires Go 1.25+** as of v1.4.1 (March 2026). This is because v1.4.1 added cross-origin request protection using `http.CrossOriginProtection`, a new API introduced in Go 1.25.
+
+**This is not a constraint — it's aligned with current Go releases.** Go 1.25 was released August 2025; by April 2026, Go 1.25 (or 1.26) is the stable toolchain.
+
+Benefits of targeting Go 1.25:
+- Enhanced `http.ServeMux` with method-based routing patterns (`GET /healthcheck`)
+- `log/slog` is mature and proven (3+ years in stdlib)
+- `iter` package and range-over-func
+- `http.CrossOriginProtection` for MCP security
+- `synctest` for testing concurrent/deterministic code
+- `os.Root` for safe filesystem access (if needed for engine schema validation)
+
+## goreleaser Configuration
+
+```yaml
+# .goreleaser.yaml
+builds:
+  - main: ./cmd/serpapi-mcp
+    binary: serpapi-mcp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+```
 
 ## Installation
 
 ```bash
-# Add new dev dependencies
-uv add --dev responses>=0.25.0 ruff>=0.8.0
+# Initialize Go module
+go mod init github.com/agenthands/serpapi-mcp
 
-# Upgrade pytest-asyncio for stable auto mode
-uv add --dev "pytest-asyncio>=0.24.0"
+# Core dependency
+go get github.com/modelcontextprotocol/go-sdk/mcp@v1.5.0
 
-# Add jsonschema for startup validation
-uv add jsonschema>=4.23.0
+# Dev tooling
+go install github.com/goreleaser/goreleaser/v2@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
-# Remove deprecated dev dependency
-uv remove --dev flake8
+# Test helper
+go get gotest.tools/v3@latest
 ```
 
 ## Dependency Summary
 
-### Keep (existing, verified)
+### Production Dependencies
 
-| Package | Version | Type | Notes |
-|---------|---------|------|-------|
-| fastmcp | >=2.13.0.2 | production | Core framework. `Client` + `FastMCPTransport` for testing. |
-| starlette | >=0.50.0 | production | ASGI framework. `TestClient` for middleware tests. |
-| uvicorn | >=0.38.0 | production | ASGI server. |
-| httpx | >=0.25.0 | production | Already available for `AsyncClient` tests. |
-| python-dotenv | >=1.0.0 | production | Env loading. |
-| serpapi | >=0.1.5 | production | SerpApi client. **Uses `requests` internally!** |
-| beautifulsoup4 | >=4.12.0 | production | Engine schema generation (`build-engines.py`). |
-| markdownify | >=0.14.1 | production | Engine schema generation (`build-engines.py`). |
-| pytest | >=7.0 | dev | Test runner. |
-| black | >=23.0 | dev | Formatter. |
-| isort | >=5.12.0 | dev | Import sorter. |
-| mypy | >=1.5.0 | dev | Type checker. |
+| Package | Version | Purpose | From |
+|---------|---------|---------|------|
+| modelcontextprotocol/go-sdk/mcp | v1.5.0+ | MCP server SDK | go get |
 
-### Upgrade
+### Zero External Production Dependencies
 
-| Package | From | To | Reason |
-|---------|------|----|--------|
-| pytest-asyncio | >=0.21.0 | **>=0.24.0** | Stable `asyncio_mode = "auto"` support. Version 0.21 had issues. |
+Everything else is stdlib: `net/http`, `encoding/json`, `log/slog`, `os`, `path/filepath`, `context`, `time`. No SerpApi Go client library needed — we call SerpApi's HTTP API directly via `net/http`, which is what the Python `serpapi` package does internally anyway.
 
-### Add (new)
+### Dev Dependencies
 
-| Package | Version | Type | Purpose |
-|---------|---------|------|---------|
-| responses | >=0.25.0 | dev | Mock `requests` calls for serpapi testing |
-| jsonschema | >=4.23.0 | production | Validate engine JSON schemas at startup |
-| ruff | >=0.8.0 | dev | Linter (replaces flake8) |
-
-### Remove
-
-| Package | Reason |
-|---------|--------|
-| flake8 | Replaced by `ruff`. No config file exists, ruff is a strict upgrade (faster, more rules, auto-fix). |
+| Package | Version | Purpose | Install |
+|---------|---------|---------|---------|
+| goreleaser | v2.x | Build & release | go install |
+| golangci-lint | v1.64+ | Static analysis | go install |
+| gotest.tools/v3 | v3.5+ | Test assertions | go get (dev) |
 
 ## Sources
 
-- **FastMCP testing docs** (Context7, `/prefecthq/fastmcp`): in-memory Client testing, `run_server_async`, `FastMCPTransport` — HIGH confidence, verified against installed package
-- **FastMCP Client API**: verified via `inspect` of installed v2.13.0.2 — `call_tool`, `list_tools`, `list_resources`, `read_resource`, `ping` all confirmed — HIGH confidence
-- **FastMCP `http_app` signature**: verified via inspection — includes `json_response`, `stateless_http`, `transport`, `middleware` params — HIGH confidence
-- **Starlette TestClient**: Context7 `/kludex/starlette` — `TestClient` for sync ASGI testing, `httpx.AsyncClient` with `ASGITransport` for async — HIGH confidence
-- **pytest-asyncio auto mode**: Context7 `/pytest-dev/pytest-asyncio` — `asyncio_mode = "auto"` in pyproject.toml — HIGH confidence
-- **`responses` library**: Context7 `/getsentry/responses` — `@responses.activate` decorator and `RequestsMock` context manager for mocking `requests` — HIGH confidence
-- **`serpapi` uses `requests` internally**: verified by inspecting `serpapi.http.HTTPClient` source — uses `requests.Session` — HIGH confidence, source code verified
-- **jsonschema**: well-established Python JSON Schema validation library, minimal dependency — HIGH confidence, ecosystem standard
-- **ruff as flake8 replacement**: https://docs.astral.sh/ruff/ — 10-100x faster, auto-fix, superset of flake8 rules — HIGH confidence, widely adopted industry standard
+- **modelcontextprotocol/go-sdk v1.5.0** — https://github.com/modelcontextprotocol/go-sdk — **HIGH confidence**: Context7 verified (`/websites/pkg_go_dev_github_com_modelcontextprotocol/go-sdk`), pkg.go.dev API docs confirmed, GitHub releases page verified v1.5.0 released Apr 7, 2026, 4.4k stars, 22 releases, official MCP org + Google collaboration
+- **mark3labs/mcp-go v0.48.0** — https://github.com/mark3labs/mcp-go — **HIGH confidence**: Context7 verified (`/mark3labs/mcp-go`), evaluated and not recommended; 8.6k stars, pre-v1 API, acknowledged as inspiration by official SDK
+- **trpc-group/trpc-mcp-go** — https://github.com/trpc-group/trpc-mcp-go — **MEDIUM confidence**: Context7 verified (`/trpc-group/trpc-mcp-go`), evaluated and not recommended; niche ecosystem
+- **GoReleaser** — https://goreleaser.com — **HIGH confidence**: Context7 verified (`/goreleaser/goreleaser`), official docs confirmed cross-compilation config structure
+- **Go slog** — https://pkg.go.dev/log/slog — **HIGH confidence**: stdlib, verified
+- **Go net/http CrossOriginProtection** — modelcontextprotocol/go-sdk v1.4.1 release notes — **HIGH confidence**: verified from GitHub releases page
+- **gotest.tools/v3** — https://github.com/gotestyourself/gotest.tools — **MEDIUM confidence**: widely used in Go ecosystem, not in Context7
+- **Go 1.25 release** — Go release policy (two newest versions) + official SDK Go 1.25 requirement — **HIGH confidence**: verified from official SDK go.mod and release notes
