@@ -1,19 +1,3 @@
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Go Rewrite
-status: defining
-stopped_at: Milestone v1.0 started
-last_updated: "2026-04-15T12:00:00.000Z"
-last_activity: 2026-04-15 — Milestone v1.0 defined
-progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
----
-
 # Project State
 
 ## Project Reference
@@ -21,33 +5,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** AI agents can search any SerpApi-supported engine through a single, authenticated MCP endpoint with structured parameter discovery and proper MCP-compliant error handling.
-**Current focus:** v1.0 — Go Rewrite
+**Current focus:** Phase 1 — Project Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-15 — Milestone v1.0 defined
+Phase: 1 of 4 (Project Foundation)
+Plan: 0 of 2 in current phase
+Status: Ready to plan
+Last activity: 2026-04-15 — Roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-
 - Total plans completed: 0
 - Average duration: —
-- Total execution time: —
+- Total execution time: 0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
+| — | 0 | — | — |
 
 **Recent Trend:**
-
 - No plans completed yet
 
 *Updated after each plan completion*
@@ -56,10 +38,11 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- Complete rewrite from Python to Go
-- Shipping multi-platform static binaries (no Docker, no Copilot)
-- Faithful port of existing API + improvements to error handling, validation, logging
-- Legacy Python code archived in `legacy/`
+- Go rewrite replaces Python; legacy code archived in `legacy/`
+- Official Go MCP SDK (`modelcontextprotocol/go-sdk`) as only external dependency
+- Multi-platform static binaries via goreleaser (no Docker)
+- Observability integrated into search phase (coarse granularity)
+- Testing as final phase after all features built
 
 ### Pending Todos
 
@@ -67,11 +50,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Go MCP SDK choice needs research (markmcclain/mcp-go-sdk vs others)
-- Engine schema generation strategy (keep Python script, rewrite in Go, or convert to Go-native)
+- Engine schema generation still requires Python `build-engines.py` in CI (ENG-05 accepts this)
 
 ## Session Continuity
 
 Last session: 2026-04-15
-Stopped at: Milestone v1.0 defined
-Resume file: .planning/PROJECT.md
+Stopped at: Roadmap created, ready to plan Phase 1
+Resume file: None
