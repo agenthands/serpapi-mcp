@@ -4,12 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"syscall"
 
+	"github.com/agenthands/serpapi-mcp/internal/engines"
 	"github.com/agenthands/serpapi-mcp/internal/server"
 )
 
@@ -25,6 +27,7 @@ func main() {
 	portFlag := flag.Int("port", envIntOr("MCP_PORT", 8000), "Port to bind the server to")
 	corsOriginsFlag := flag.String("cors-origins", envOr("MCP_CORS_ORIGINS", "*"), "Comma-separated list of allowed CORS origins")
 	authDisabledFlag := flag.Bool("auth-disabled", envBoolOr("MCP_AUTH_DISABLED", false), "Disable API key authentication (for testing)")
+	enginesDirFlag := flag.String("engines-dir", envOr("ENGINES_DIR", "engines"), "Path to directory containing engine JSON schemas")
 	flag.Parse()
 
 	// Print startup banner
@@ -38,6 +41,14 @@ func main() {
 	}
 
 	mcpServer := server.NewMCPServer(cfg, version)
+
+	// Load engine schemas and register MCP resources (fail-fast on corrupt/missing JSON)
+	engineCount, err := engines.LoadAndRegister(mcpServer.MCPServer, *enginesDirFlag, slog.Default())
+	if err != nil {
+		slog.Error("failed to load engine schemas", "error", err)
+		os.Exit(1)
+	}
+	mcpServer.SetEngineCount(engineCount)
 
 	// Set up signal handling for graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

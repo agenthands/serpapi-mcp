@@ -29,6 +29,7 @@ type MCPServer struct {
 	httpServer  *http.Server
 	logger      *slog.Logger
 	version     string
+	engineCount int
 }
 
 // healthResponse is the JSON response body for the /health endpoint.
@@ -99,6 +100,11 @@ func (s *MCPServer) buildHandler() http.Handler {
 	return corsMiddleware(corsCfg, authenticated)
 }
 
+// SetEngineCount sets the number of loaded engines for startup logging.
+func (s *MCPServer) SetEngineCount(count int) {
+	s.engineCount = count
+}
+
 // Run starts the MCP server and blocks until the context is cancelled.
 // It listens for SIGINT/SIGTERM via the provided context and shuts down gracefully.
 func (s *MCPServer) Run(ctx context.Context) error {
@@ -121,7 +127,7 @@ func (s *MCPServer) Run(ctx context.Context) error {
 	s.logger.Info("SerpApi MCP Server starting",
 		"address", actualAddr,
 		"version", s.version,
-		"engines_loaded", 0,
+		"engines_loaded", s.engineCount,
 	)
 
 	// Start serving in a goroutine
