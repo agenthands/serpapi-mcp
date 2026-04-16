@@ -40,11 +40,11 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### Engine Resources
 
-- [ ] **ENG-01**: Engine schemas loaded from `engines/*.json` at startup
-- [ ] **ENG-02**: Engine list resource at `serpapi://engines` returning all available engine names
-- [ ] **ENG-03**: Per-engine schema resource at `serpapi://engines/{engine}` returning parameter schema
-- [ ] **ENG-04**: Startup validation of engine schemas — fail fast on corrupt or missing JSON
-- [ ] **ENG-05**: Engine schema generation remains via `build-engines.py` (Python script in CI, not ported to Go)
+- [x] **ENG-01**: Engine schemas loaded from `engines/*.json` at startup
+- [x] **ENG-02**: Engine list resource at `serpapi://engines` returning all available engine names
+- [x] **ENG-03**: Per-engine schema resource at `serpapi://engines/{engine}` returning parameter schema
+- [x] **ENG-04**: Startup validation of engine schemas — fail fast on corrupt or missing JSON
+- [x] **ENG-05**: Engine schema generation remains via `build-engines.py` (Python script in CI, not ported to Go)
 
 ### Input Validation
 
@@ -114,11 +114,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-02 | Phase 2 | Complete |
 | AUTH-03 | Phase 2 | Complete |
-| ENG-01 | Phase 2 | Pending |
-| ENG-02 | Phase 2 | Pending |
-| ENG-03 | Phase 2 | Pending |
-| ENG-04 | Phase 2 | Pending |
-| ENG-05 | Phase 2 | Pending |
+| ENG-01 | Phase 2 | Complete |
+| ENG-02 | Phase 2 | Complete |
+| ENG-03 | Phase 2 | Complete |
+| ENG-04 | Phase 2 | Complete |
+| ENG-05 | Phase 2 | Complete |
 | SRCH-01 | Phase 3 | Pending |
 | SRCH-02 | Phase 3 | Pending |
 | SRCH-03 | Phase 3 | Pending |
