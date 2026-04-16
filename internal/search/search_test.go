@@ -3,11 +3,13 @@ package search
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/agenthands/serpapi-mcp/internal/engines"
 	"github.com/agenthands/serpapi-mcp/internal/server"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -54,6 +56,17 @@ func setupTestServer(t *testing.T) (*httptest.Server, *mcp.Server) {
 
 	// Override the SerpApi base URL to point to our mock server
 	serpapiBaseURL = mockSerpAPI.URL
+
+	// Load engine schemas for validation (only if not already loaded)
+	if engines.EngineNames() == nil {
+		engSrv := mcp.NewServer(
+			&mcp.Implementation{Name: "search-test", Version: "0.0.1"},
+			&mcp.ServerOptions{},
+		)
+		if _, err := engines.LoadAndRegister(engSrv, "../../engines", slog.Default()); err != nil {
+			t.Fatalf("Failed to load engine schemas: %v", err)
+		}
+	}
 
 	mcpSrv := mcp.NewServer(
 		&mcp.Implementation{Name: "test", Version: "0.1.0"},

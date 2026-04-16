@@ -104,6 +104,26 @@ func callSearchTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToo
 		input.Params["engine"] = "google_light"
 	}
 
+	// 4.5 Input validation — runs BEFORE any SerpApi HTTP call (VAL-01, VAL-02, VAL-03)
+	engine, _ := input.Params["engine"].(string)
+
+	if err := ValidateEngine(engine); err != nil {
+		slog.Error("search validation failed", "error", err, "engine", engine, "mode", input.Mode)
+		return toolError("invalid_engine", err.Error()), nil
+	}
+
+	if err := ValidateMode(input.Mode); err != nil {
+		slog.Error("search validation failed", "error", err, "engine", engine, "mode", input.Mode)
+		return toolError("invalid_mode", err.Error()), nil
+	}
+
+	if err := ValidateRequiredParams(engine, input.Params); err != nil {
+		slog.Error("search validation failed", "error", err, "engine", engine, "mode", input.Mode)
+		return toolError("missing_params", err.Error()), nil
+	}
+
+	slog.Info("search request", "engine", engine, "mode", input.Mode, "params_count", len(input.Params))
+
 	// 5. Construct SerpApi URL
 	u, err := url.Parse(serpapiBaseURL)
 	if err != nil {
