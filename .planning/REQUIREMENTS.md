@@ -30,13 +30,13 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### Search Tool
 
-- [ ] **SRCH-01**: Single `search` tool accepting `params` dict with `engine`, `mode`, and SerpApi parameters
-- [ ] **SRCH-02**: Default engine is `google_light` (matching Python server)
-- [ ] **SRCH-03**: Complete mode returns full SerpApi response
-- [ ] **SRCH-04**: Compact mode removes specified fields from response
-- [ ] **SRCH-05**: MCP-compliant error responses using `IsError: true` flag (not string prefixes)
-- [ ] **SRCH-06**: SerpApi HTTP calls via `net/http.Client` with reasonable timeouts
-- [ ] **SRCH-07**: Proper handling of SerpApi rate limits (429), auth errors (401/403), and server errors (5xx)
+- [x] **SRCH-01**: Single `search` tool accepting `params` dict with `engine`, `mode`, and SerpApi parameters
+- [x] **SRCH-02**: Default engine is `google_light` (matching Python server)
+- [x] **SRCH-03**: Complete mode returns full SerpApi response
+- [x] **SRCH-04**: Compact mode removes specified fields from response
+- [x] **SRCH-05**: MCP-compliant error responses using `IsError: true` flag (not string prefixes)
+- [x] **SRCH-06**: SerpApi HTTP calls via `net/http.Client` with reasonable timeouts
+- [x] **SRCH-07**: Proper handling of SerpApi rate limits (429), auth errors (401/403), and server errors (5xx)
 
 ### Engine Resources
 
@@ -119,13 +119,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENG-03 | Phase 2 | Complete |
 | ENG-04 | Phase 2 | Complete |
 | ENG-05 | Phase 2 | Complete |
-| SRCH-01 | Phase 3 | Pending |
-| SRCH-02 | Phase 3 | Pending |
-| SRCH-03 | Phase 3 | Pending |
-| SRCH-04 | Phase 3 | Pending |
-| SRCH-05 | Phase 3 | Pending |
-| SRCH-06 | Phase 3 | Pending |
-| SRCH-07 | Phase 3 | Pending |
+| SRCH-01 | Phase 3 | Complete |
+| SRCH-02 | Phase 3 | Complete |
+| SRCH-03 | Phase 3 | Complete |
+| SRCH-04 | Phase 3 | Complete |
+| SRCH-05 | Phase 3 | Complete |
+| SRCH-06 | Phase 3 | Complete |
+| SRCH-07 | Phase 3 | Complete |
 | VAL-01 | Phase 3 | Pending |
 | VAL-02 | Phase 3 | Pending |
 | VAL-03 | Phase 3 | Pending |
