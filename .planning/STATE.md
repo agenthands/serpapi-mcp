@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-04-16T14:57:44.226Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-04-16T15:12:03.024Z"
 last_activity: 2026-04-16
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-15)
 ## Current Position
 
 Phase: 02 (server-auth-engine-resources) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-16
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 4min | 2 tasks | 17 files |
 | Phase 01 P02 | 6min | 2 tasks | 6 files |
 | Phase 02 P01 | 8min | 2 tasks | 5 files |
+| Phase 02 P02 | 6min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 01]: CI triggers on pull_request to main only per D-07; goreleaser handles cross-platform builds regardless of CI Go version — Single Go version CI with goreleaser cross-compilation is the standard Go release pattern
 - [Phase 02]: Disabled SDK's DisableLocalhostProtection on StreamableHTTPOptions — MCP clients connect remotely from non-localhost origins
 - [Phase 02]: Used net.Listener before http.Server.Serve for immediate port discovery (needed when Port=0)
+- [Phase 02]: CORS → Auth → mux handler ordering so OPTIONS preflight bypasses auth before CORS responds with headers
+- [Phase 02]: authOrPassthrough helper wraps authMiddleware conditionally based on Config.AuthDisabled for testing
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:57:44.224Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-16T15:12:03.022Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

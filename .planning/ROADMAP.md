@@ -48,7 +48,7 @@ Plans:
 
 Plans:
 - [x] 02-01: MCP server with Streamable HTTP transport, healthcheck, CORS, and graceful shutdown
-- [ ] 02-02: API key auth middleware (path-based and Bearer header)
+- [x] 02-02: API key auth middleware (path-based and Bearer header)
 - [ ] 02-03: Engine resource loading, schema serving, and startup validation
 
 ### Phase 3: Search, Validation & Observability

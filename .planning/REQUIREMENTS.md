@@ -24,9 +24,9 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: API key extraction from URL path (`/{KEY}/mcp`) — maintains Python server compatibility
-- [ ] **AUTH-02**: API key extraction from `Authorization: Bearer {KEY}` header — maintains Python server compatibility
-- [ ] **AUTH-03**: Auth middleware composed with StreamableHTTPHandler via standard Go `http.Handler` wrapping
+- [x] **AUTH-01**: API key extraction from URL path (`/{KEY}/mcp`) — maintains Python server compatibility
+- [x] **AUTH-02**: API key extraction from `Authorization: Bearer {KEY}` header — maintains Python server compatibility
+- [x] **AUTH-03**: Auth middleware composed with StreamableHTTPHandler via standard Go `http.Handler` wrapping
 
 ### Search Tool
 
@@ -111,9 +111,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCP-02 | Phase 2 | Complete |
 | MCP-03 | Phase 2 | Complete |
 | MCP-04 | Phase 2 | Complete |
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
 | ENG-01 | Phase 2 | Pending |
 | ENG-02 | Phase 2 | Pending |
 | ENG-03 | Phase 2 | Pending |
