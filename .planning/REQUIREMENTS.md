@@ -48,15 +48,15 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### Input Validation
 
-- [ ] **VAL-01**: Reject invalid engine names with clear error message listing available engines
-- [ ] **VAL-02**: Validate `mode` parameter accepts only "complete" or "compact"
-- [ ] **VAL-03**: Validate required SerpApi parameters per engine schema
+- [x] **VAL-01**: Reject invalid engine names with clear error message listing available engines
+- [x] **VAL-02**: Validate `mode` parameter accepts only "complete" or "compact"
+- [x] **VAL-03**: Validate required SerpApi parameters per engine schema
 
 ### Observability
 
-- [ ] **OBS-01**: Structured logging via `log/slog` with request correlation IDs
-- [ ] **OBS-02**: Correlation ID included in all log entries for a request
-- [ ] **OBS-03**: Startup log message confirming server ready, port, and engine count
+- [x] **OBS-01**: Structured logging via `log/slog` with request correlation IDs
+- [x] **OBS-02**: Correlation ID included in all log entries for a request
+- [x] **OBS-03**: Startup log message confirming server ready, port, and engine count
 
 ### Testing
 
@@ -126,12 +126,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SRCH-05 | Phase 3 | Complete |
 | SRCH-06 | Phase 3 | Complete |
 | SRCH-07 | Phase 3 | Complete |
-| VAL-01 | Phase 3 | Pending |
-| VAL-02 | Phase 3 | Pending |
-| VAL-03 | Phase 3 | Pending |
-| OBS-01 | Phase 3 | Pending |
-| OBS-02 | Phase 3 | Pending |
-| OBS-03 | Phase 3 | Pending |
+| VAL-01 | Phase 3 | Complete |
+| VAL-02 | Phase 3 | Complete |
+| VAL-03 | Phase 3 | Complete |
+| OBS-01 | Phase 3 | Complete |
+| OBS-02 | Phase 3 | Complete |
+| OBS-03 | Phase 3 | Complete |
 | TEST-01 | Phase 4 | Pending |
 | TEST-02 | Phase 4 | Pending |
 | TEST-03 | Phase 4 | Pending |

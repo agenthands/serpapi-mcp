@@ -32,11 +32,16 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 
 ### Active
 
-- [ ] Search tool delegating to SerpApi HTTP API
-- [ ] Complete and compact response modes
-- [ ] Proper MCP-compliant error responses (ToolError, not string prefixes)
-- [ ] Input validation: reject invalid engine names, missing required params, invalid mode
-- [ ] Structured logging with request correlation IDs
+None — all v1.0 requirements completed.
+
+### Validated in Phase 03: Search, Validation & Observability
+
+- ✓ Search tool delegating to SerpApi HTTP API with complete/compact modes
+- ✓ Proper MCP-compliant error responses (toolError with flat JSON body, IsError=true)
+- ✓ Input validation: reject invalid engine names (with available list), missing required params (with param names), invalid mode (complete/compact)
+- ✓ Structured logging with request correlation IDs (32-char hex, crypto/rand, client-provided X-Correlation-ID supported)
+
+### Validated in Phase 02: Server, Auth & Engine Resources
 
 ### Validated in Phase 01: Project Foundation
 
