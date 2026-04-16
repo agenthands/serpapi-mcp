@@ -17,10 +17,10 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### MCP Server Core
 
-- [ ] **MCP-01**: Streamable HTTP transport using `modelcontextprotocol/go-sdk` StreamableHTTPHandler
-- [ ] **MCP-02**: Healthcheck endpoint at `/health` returning 200 OK
-- [ ] **MCP-03**: CORS support matching Python server behavior
-- [ ] **MCP-04**: Graceful shutdown on SIGINT/SIGTERM using `signal.NotifyContext()`
+- [x] **MCP-01**: Streamable HTTP transport using `modelcontextprotocol/go-sdk` StreamableHTTPHandler
+- [x] **MCP-02**: Healthcheck endpoint at `/health` returning 200 OK
+- [x] **MCP-03**: CORS support matching Python server behavior
+- [x] **MCP-04**: Graceful shutdown on SIGINT/SIGTERM using `signal.NotifyContext()`
 
 ### Authentication
 
@@ -107,10 +107,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETUP-03 | Phase 1 | Complete |
 | SETUP-04 | Phase 1 | Complete |
 | SETUP-05 | Phase 1 | Complete |
-| MCP-01 | Phase 2 | Pending |
-| MCP-02 | Phase 2 | Pending |
-| MCP-03 | Phase 2 | Pending |
-| MCP-04 | Phase 2 | Pending |
+| MCP-01 | Phase 2 | Complete |
+| MCP-02 | Phase 2 | Complete |
+| MCP-03 | Phase 2 | Complete |
+| MCP-04 | Phase 2 | Complete |
 | AUTH-01 | Phase 2 | Pending |
 | AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 2 | Pending |

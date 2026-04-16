@@ -47,7 +47,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: MCP server with Streamable HTTP transport, healthcheck, CORS, and graceful shutdown
+- [x] 02-01: MCP server with Streamable HTTP transport, healthcheck, CORS, and graceful shutdown
 - [ ] 02-02: API key auth middleware (path-based and Bearer header)
 - [ ] 02-03: Engine resource loading, schema serving, and startup validation
 
