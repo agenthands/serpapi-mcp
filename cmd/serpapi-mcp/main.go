@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/signal"
 	"strconv"
@@ -29,16 +28,11 @@ func main() {
 	// Print startup banner
 	fmt.Printf("serpapi-mcp %s (commit: %s, built: %s)\n", version, commit, date)
 
-	// Create logger
-	logger := slog.Default()
-
 	cfg := server.Config{
 		Host:        *hostFlag,
 		Port:        *portFlag,
 		CorsOrigins: *corsOriginsFlag,
 	}
-
-	_ = logger // logger used by server internally via slog.Default()
 
 	mcpServer := server.NewMCPServer(cfg, version)
 
@@ -47,7 +41,7 @@ func main() {
 	defer stop()
 
 	if err := mcpServer.Run(ctx); err != nil {
-		slog.Error("server failed", "error", err)
+		fmt.Fprintf(os.Stderr, "server failed: %v\n", err)
 		os.Exit(1)
 	}
 }
