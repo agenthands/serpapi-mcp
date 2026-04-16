@@ -22,6 +22,12 @@ func APIKeyFromContext(ctx context.Context) string {
 	return ""
 }
 
+// ContextWithAPIKey returns a new context with the given API key stored.
+// This is primarily useful for testing tool handlers that call APIKeyFromContext.
+func ContextWithAPIKey(ctx context.Context, key string) context.Context {
+	return context.WithValue(ctx, apiKeyContextKey, key)
+}
+
 // authErrorResponse is the JSON body returned for authentication failures.
 type authErrorResponse struct {
 	Error string `json:"error"`

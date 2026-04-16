@@ -18,6 +18,12 @@ import (
 // engineNamePattern validates engine filenames: only [a-z0-9_]+.json allowed.
 var engineNamePattern = regexp.MustCompile(`^[a-z0-9_]+$`)
 
+// engineNamesStore caches engine names after loading for accessor functions.
+var engineNamesStore []string
+
+// schemasStore caches engine schemas after loading for accessor functions.
+var schemasStore map[string]*engineSchema
+
 // engineSchema holds a parsed engine JSON schema.
 type engineSchema struct {
 	Engine string          `json:"engine"`
@@ -75,6 +81,11 @@ func LoadAndRegister(srv *mcp.Server, enginesDir string, logger *slog.Logger) (i
 	}
 
 	sort.Strings(engineNames)
+
+	// Cache for accessor functions
+	engineNamesStore = make([]string, len(engineNames))
+	copy(engineNamesStore, engineNames)
+	schemasStore = schemas
 
 	// Register serpapi://engines index resource
 	registerEnginesIndex(srv, engineNames, logger)
@@ -162,4 +173,60 @@ func registerEngineResource(srv *mcp.Server, name string, schema *engineSchema, 
 			}, nil
 		},
 	)
+}
+
+// EngineNames returns a copy of the loaded engine names.
+// Returns nil if LoadAndRegister has not been called.
+func EngineNames() []string {
+	if engineNamesStore == nil {
+		return nil
+	}
+	names := make([]string, len(engineNamesStore))
+	copy(names, engineNamesStore)
+	return names
+}
+
+// RequiredParams returns the names of required parameters for the given engine.
+// It parses the engine schema's "params" object and extracts keys with "required": true.
+// Returns nil if the engine is not found or has no required params.
+func RequiredParams(engineName string) []string {
+	if schemasStore == nil {
+		return nil
+	}
+	schema, ok := schemasStore[engineName]
+	if !ok || schema == nil {
+		return nil
+	}
+
+	// Parse the raw JSON to extract params with required:true
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(schema.Raw, &raw); err != nil {
+		return nil
+	}
+
+	paramsRaw, ok := raw["params"]
+	if !ok {
+		return nil
+	}
+
+	var params map[string]json.RawMessage
+	if err := json.Unmarshal(paramsRaw, &params); err != nil {
+		return nil
+	}
+
+	var required []string
+	for name, paramRaw := range params {
+		var param struct {
+			Required bool `json:"required"`
+		}
+		if err := json.Unmarshal(paramRaw, &param); err != nil {
+			continue
+		}
+		if param.Required {
+			required = append(required, name)
+		}
+	}
+
+	sort.Strings(required)
+	return required
 }
