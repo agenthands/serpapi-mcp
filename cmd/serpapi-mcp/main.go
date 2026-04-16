@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/agenthands/serpapi-mcp/internal/engines"
+	"github.com/agenthands/serpapi-mcp/internal/search"
 	"github.com/agenthands/serpapi-mcp/internal/server"
 )
 
@@ -49,6 +50,10 @@ func main() {
 		os.Exit(1)
 	}
 	mcpServer.SetEngineCount(engineCount)
+
+	// Register the search tool
+	search.RegisterSearchTool(mcpServer.MCPServer, slog.Default())
+	slog.Info("search tool registered")
 
 	// Set up signal handling for graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
