@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/agenthands/serpapi-mcp/internal/middleware"
 	"github.com/agenthands/serpapi-mcp/internal/server"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -77,6 +78,9 @@ func callSearchTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToo
 		}
 	}()
 
+	// Extract correlation ID for structured logging (OBS-01)
+	corrID := middleware.CorrelationIDFromContext(ctx)
+
 	// 1. Unmarshal arguments
 	var input searchInput
 	if req.Params.Arguments != nil {
@@ -108,21 +112,21 @@ func callSearchTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToo
 	engine, _ := input.Params["engine"].(string)
 
 	if err := ValidateEngine(engine); err != nil {
-		slog.Error("search validation failed", "error", err, "engine", engine, "mode", input.Mode)
+		slog.Error("search validation failed", "correlation_id", corrID, "error", err, "engine", engine, "mode", input.Mode)
 		return toolError("invalid_engine", err.Error()), nil
 	}
 
 	if err := ValidateMode(input.Mode); err != nil {
-		slog.Error("search validation failed", "error", err, "engine", engine, "mode", input.Mode)
+		slog.Error("search validation failed", "correlation_id", corrID, "error", err, "engine", engine, "mode", input.Mode)
 		return toolError("invalid_mode", err.Error()), nil
 	}
 
 	if err := ValidateRequiredParams(engine, input.Params); err != nil {
-		slog.Error("search validation failed", "error", err, "engine", engine, "mode", input.Mode)
+		slog.Error("search validation failed", "correlation_id", corrID, "error", err, "engine", engine, "mode", input.Mode)
 		return toolError("missing_params", err.Error()), nil
 	}
 
-	slog.Info("search request", "engine", engine, "mode", input.Mode, "params_count", len(input.Params))
+	slog.Info("search request", "correlation_id", corrID, "engine", engine, "mode", input.Mode, "params_count", len(input.Params))
 
 	// 5. Construct SerpApi URL
 	u, err := url.Parse(serpapiBaseURL)

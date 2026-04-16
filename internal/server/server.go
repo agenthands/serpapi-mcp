@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/agenthands/serpapi-mcp/internal/middleware"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -73,7 +74,7 @@ func NewMCPServer(cfg Config, version string) *MCPServer {
 	}
 }
 
-// buildHandler constructs the HTTP handler chain: CORS → mux (with /mcp and /health routes).
+// buildHandler constructs the HTTP handler chain: CORS → correlation → auth → mux.
 func (s *MCPServer) buildHandler() http.Handler {
 	mux := http.NewServeMux()
 
@@ -95,9 +96,12 @@ func (s *MCPServer) buildHandler() http.Handler {
 	// Wrap with auth middleware (skipped if AuthDisabled)
 	authenticated := authOrPassthrough(s.Config.AuthDisabled, mux)
 
+	// Wrap with correlation ID middleware (OBS-01, OBS-02)
+	withCorrelation := middleware.CorrelationIDMiddleware(authenticated)
+
 	// Wrap with CORS middleware
 	corsCfg := NewCORSConfig(s.Config.CorsOrigins)
-	return corsMiddleware(corsCfg, authenticated)
+	return corsMiddleware(corsCfg, withCorrelation)
 }
 
 // SetEngineCount sets the number of loaded engines for startup logging.
