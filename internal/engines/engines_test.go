@@ -324,3 +324,63 @@ func TestLoadAndRegister_EmptyDir(t *testing.T) {
 		t.Fatalf("expected 1 resource (index only), got %d", len(result.Resources))
 	}
 }
+
+// TestLoadAndRegister_RealEnginesDir verifies all 107 engine JSON files
+// from the project's engines/ directory can be loaded and registered.
+// This test is skipped if the engines/ directory is not found (e.g., in CI
+// with different working directory).
+func TestLoadAndRegister_RealEnginesDir(t *testing.T) {
+	// Resolve the engines directory relative to this test file
+	enginesDir := filepath.Join("..", "..", "engines")
+	if _, err := os.Stat(enginesDir); os.IsNotExist(err) {
+		t.Skip("skipping: engines/ directory not found (expected at repo root)")
+	}
+
+	srv, cs, ctx := setupTestServer(t)
+
+	logger := slog.Default()
+	count, err := LoadAndRegister(srv, enginesDir, logger)
+	if err != nil {
+		t.Fatalf("LoadAndRegister with real engines dir returned error: %v", err)
+	}
+	if count != 107 {
+		t.Fatalf("expected 107 engines, got %d", count)
+	}
+
+	// Verify we can list all 108 resources (107 engines + index)
+	result, err := cs.ListResources(ctx, nil)
+	if err != nil {
+		t.Fatalf("ListResources failed: %v", err)
+	}
+	if len(result.Resources) != 108 {
+		t.Fatalf("expected 108 resources (1 index + 107 engines), got %d", len(result.Resources))
+	}
+
+	// Read the index and verify count
+	indexResult, err := cs.ReadResource(ctx, &mcp.ReadResourceParams{URI: "serpapi://engines"})
+	if err != nil {
+		t.Fatalf("ReadResource for engines index failed: %v", err)
+	}
+
+	var index map[string]any
+	if err := json.Unmarshal([]byte(indexResult.Contents[0].Text), &index); err != nil {
+		t.Fatalf("failed to parse engines index: %v", err)
+	}
+	if int(index["count"].(float64)) != 107 {
+		t.Fatalf("expected count 107 in index, got %v", index["count"])
+	}
+
+	// Read one per-engine resource (google_light)
+	engineResult, err := cs.ReadResource(ctx, &mcp.ReadResourceParams{URI: "serpapi://engines/google_light"})
+	if err != nil {
+		t.Fatalf("ReadResource for google_light failed: %v", err)
+	}
+
+	var schema map[string]any
+	if err := json.Unmarshal([]byte(engineResult.Contents[0].Text), &schema); err != nil {
+		t.Fatalf("failed to parse google_light schema: %v", err)
+	}
+	if schema["engine"] != "google_light" {
+		t.Fatalf("expected engine 'google_light', got %v", schema["engine"])
+	}
+}
