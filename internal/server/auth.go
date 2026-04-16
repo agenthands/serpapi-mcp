@@ -27,7 +27,15 @@ type authErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// authMiddleware returns an http.Handler that authenticates requests
+// authOrPassthrough returns the auth middleware wrapping next, or a passthrough
+// handler if disabled is true. Useful for testing without requiring API keys.
+func authOrPassthrough(disabled bool, next http.Handler) http.Handler {
+	if disabled {
+		return next
+	}
+	return authMiddleware(next)
+}
+
 // before forwarding them to the next handler.
 //
 // Authentication is attempted in the following order:

@@ -15,9 +15,10 @@ import (
 
 // Config holds the server configuration.
 type Config struct {
-	Host        string
-	Port        int
-	CorsOrigins string
+	Host         string
+	Port         int
+	CorsOrigins  string
+	AuthDisabled bool
 }
 
 // MCPServer wraps the MCP server with HTTP transport, healthcheck, and CORS.
@@ -90,9 +91,12 @@ func (s *MCPServer) buildHandler() http.Handler {
 		}
 	})
 
+	// Wrap with auth middleware (skipped if AuthDisabled)
+	authenticated := authOrPassthrough(s.Config.AuthDisabled, mux)
+
 	// Wrap with CORS middleware
 	corsCfg := NewCORSConfig(s.Config.CorsOrigins)
-	return corsMiddleware(corsCfg, mux)
+	return corsMiddleware(corsCfg, authenticated)
 }
 
 // Run starts the MCP server and blocks until the context is cancelled.

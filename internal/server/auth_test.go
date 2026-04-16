@@ -205,3 +205,124 @@ func TestAPIKeyFromContext(t *testing.T) {
 		t.Fatalf("expected empty string from background context, got %q", key)
 	}
 }
+
+// --- Integration tests: full handler chain (CORS → Auth → mux) ---
+
+func TestIntegrationUnauthenticatedMCPReturns401(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 for unauthenticated /mcp, got %d", w.Code)
+	}
+}
+
+func TestIntegrationPathBasedAuth(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	// Request with path-based auth: /{KEY}/mcp
+	req := httptest.NewRequest(http.MethodPost, "/test-api-key/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	// The MCP handler returns 4xx for bad MCP requests, but NOT 401
+	// (auth passed, the request just isn't a valid MCP request)
+	if w.Code == http.StatusUnauthorized {
+		t.Fatalf("expected auth to pass for path-based key, got 401")
+	}
+}
+
+func TestIntegrationHealthBypassesAuth(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /health without auth, got %d", w.Code)
+	}
+}
+
+func TestIntegrationCORSHeadersOnUnauthenticated(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	origin := w.Header().Get("Access-Control-Allow-Origin")
+	if origin != "*" {
+		t.Fatalf("expected CORS origin header on 401 response, got %q", origin)
+	}
+}
+
+func TestIntegrationCORSPreflightNoAuth(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	// OPTIONS preflight should get CORS headers without needing auth
+	req := httptest.NewRequest(http.MethodOptions, "/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("expected 204 for OPTIONS preflight, got %d", w.Code)
+	}
+
+	origin := w.Header().Get("Access-Control-Allow-Origin")
+	if origin != "*" {
+		t.Fatalf("expected CORS origin header on preflight, got %q", origin)
+	}
+}
+
+func TestIntegrationCORSHeadersOnAuthenticated(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodPost, "/my-api-key/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	origin := w.Header().Get("Access-Control-Allow-Origin")
+	if origin != "*" {
+		t.Fatalf("expected CORS origin header on authenticated response, got %q", origin)
+	}
+}
