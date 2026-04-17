@@ -76,11 +76,12 @@ Plans:
   2. Unit tests for engine resource loading and schema retrieval pass
   3. Integration tests for auth middleware (path and header key extraction) and healthcheck endpoint pass
   4. Input validation tests confirm invalid engine names, invalid modes, and missing parameters are properly rejected
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 - [x] 04-01: Unit test hardening for search, compact mode, validation, engine accessors, and CLI helpers
 - [x] 04-02: Auth/healthcheck integration gaps, race detection, coverage enforcement, and release build verification
+- [ ] 04-03: Gap closure — CI Go version fix, coverage must-have revision via run() extraction, Makefile lint/vet, dynamic engine count
 
 ## Progress
 
@@ -92,4 +93,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Project Foundation | 2/2 | Complete | 2026-04-15 |
 | 2. Server, Auth & Engine Resources | 3/3 | Complete | 2026-04-16 |
 | 3. Search, Validation & Observability | 2/2 | Complete | 2026-04-16 |
-| 4. Testing & Release | 0/2 | Planning | - |
+| 4. Testing & Release | 2/3 | Gap Closure | - |
