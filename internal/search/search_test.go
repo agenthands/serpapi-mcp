@@ -54,8 +54,8 @@ func setupTestServer(t *testing.T) (*httptest.Server, *mcp.Server) {
 		}
 	}))
 
-	// Override the SerpApi base URL to point to our mock server
-	serpapiBaseURL = mockSerpAPI.URL
+	origResolver := serpapiBaseURLResolver
+	serpapiBaseURLResolver = func() string { return mockSerpAPI.URL }
 
 	// Load engine schemas for validation (only if not already loaded)
 	if engines.EngineNames() == nil {
@@ -75,8 +75,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *mcp.Server) {
 
 	t.Cleanup(func() {
 		mockSerpAPI.Close()
-		// Reset base URL after test
-		serpapiBaseURL = "https://serpapi.com/search"
+		serpapiBaseURLResolver = origResolver
 	})
 
 	return mockSerpAPI, mcpSrv
@@ -338,8 +337,9 @@ func TestSearchDefaultEngine(t *testing.T) {
 	}))
 	defer mockSerpAPI.Close()
 
-	serpapiBaseURL = mockSerpAPI.URL
-	defer func() { serpapiBaseURL = "https://serpapi.com/search" }()
+	origResolver := serpapiBaseURLResolver
+	serpapiBaseURLResolver = func() string { return mockSerpAPI.URL }
+	defer func() { serpapiBaseURLResolver = origResolver }()
 
 	args := map[string]any{
 		"params": map[string]any{"q": "test query"},
@@ -399,8 +399,9 @@ func TestSearchEmptyParams(t *testing.T) {
 	}))
 	defer mockSerpAPI.Close()
 
-	serpapiBaseURL = mockSerpAPI.URL
-	defer func() { serpapiBaseURL = "https://serpapi.com/search" }()
+	origResolver := serpapiBaseURLResolver
+	serpapiBaseURLResolver = func() string { return mockSerpAPI.URL }
+	defer func() { serpapiBaseURLResolver = origResolver }()
 
 	// Include "q" (required param for google_light) but omit "engine"
 	args := map[string]any{
@@ -466,8 +467,9 @@ func TestSearchCompactModeOnArrayResponse(t *testing.T) {
 	}))
 	defer mockSerpAPI.Close()
 
-	serpapiBaseURL = mockSerpAPI.URL
-	defer func() { serpapiBaseURL = "https://serpapi.com/search" }()
+	origResolver := serpapiBaseURLResolver
+	serpapiBaseURLResolver = func() string { return mockSerpAPI.URL }
+	defer func() { serpapiBaseURLResolver = origResolver }()
 
 	// Ensure engines are loaded for validation
 	if engines.EngineNames() == nil {

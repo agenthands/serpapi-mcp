@@ -136,8 +136,9 @@ func TestSearchValidationPreventsHTTPCall(t *testing.T) {
 	}))
 	defer mockSerpAPI.Close()
 
-	serpapiBaseURL = mockSerpAPI.URL
-	defer func() { serpapiBaseURL = "https://serpapi.com/search" }()
+	origResolver := serpapiBaseURLResolver
+	serpapiBaseURLResolver = func() string { return mockSerpAPI.URL }
+	defer func() { serpapiBaseURLResolver = origResolver }()
 
 	// Also ensure engines are loaded for validation
 	setupEnginesForTest(t)

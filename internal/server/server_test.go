@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -97,17 +98,7 @@ func TestGracefulShutdown(t *testing.T) {
 
 // containsJSON is a simple helper to check if a JSON body contains key-value pair.
 func containsJSON(body, key, value string) bool {
-	// Simple string containment check for test purposes
-	return contains(body, key) && contains(body, value)
-}
-
-func contains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	return strings.Contains(body, key) && strings.Contains(body, value)
 }
 
 func TestServerStartsWithEngines(t *testing.T) {

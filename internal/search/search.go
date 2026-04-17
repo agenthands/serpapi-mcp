@@ -17,9 +17,13 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// serpapiBaseURL is the SerpApi search endpoint. Overridden in tests to point
-// to a mock HTTP server.
-var serpapiBaseURL = "https://serpapi.com/search"
+// serpapiBaseURLResolver returns the SerpApi search endpoint. Override in tests
+// to point to a mock HTTP server via atomic function-variable swap.
+var serpapiBaseURLResolver = func() string { return "https://serpapi.com/search" }
+
+// serpAPIClient is a shared HTTP client with a persistent connection pool.
+// Per-request timeouts are applied via context.WithTimeout instead of Client.Timeout.
+var serpAPIClient = &http.Client{}
 
 // compactRemoveFields lists the top-level keys stripped from SerpApi responses
 // when mode is "compact" (D-08).
@@ -129,7 +133,7 @@ func callSearchTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToo
 	slog.Info("search request", "correlation_id", corrID, "engine", engine, "mode", input.Mode, "params_count", len(input.Params))
 
 	// 5. Construct SerpApi URL
-	u, err := url.Parse(serpapiBaseURL)
+	u, err := url.Parse(serpapiBaseURLResolver())
 	if err != nil {
 		return toolError("search_error", fmt.Sprintf("invalid SerpApi URL: %v", err)), nil
 	}
@@ -141,9 +145,14 @@ func callSearchTool(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToo
 	}
 	u.RawQuery = q.Encode()
 
-	// 6. Make GET request via http.Client with 30s timeout (D-07)
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Get(u.String())
+	// 6. Make GET request via shared http.Client with 30s timeout (D-07)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return toolError("search_error", fmt.Sprintf("failed to create request: %v", err)), nil
+	}
+	resp, err := serpAPIClient.Do(httpReq)
 	if err != nil {
 		return toolError("search_error", fmt.Sprintf("SerpApi request failed: %v", err)), nil
 	}

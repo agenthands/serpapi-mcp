@@ -42,7 +42,8 @@ func authOrPassthrough(disabled bool, next http.Handler) http.Handler {
 	return authMiddleware(next)
 }
 
-// before forwarding them to the next handler.
+// authMiddleware validates the API key from the Authorization header or URL path
+// before forwarding requests to the next handler.
 //
 // Authentication is attempted in the following order:
 //  1. Authorization: Bearer {KEY} header (takes priority)
