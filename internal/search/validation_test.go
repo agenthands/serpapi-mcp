@@ -166,3 +166,78 @@ func TestSearchValidationPreventsHTTPCall(t *testing.T) {
 		t.Errorf("expected error code 'invalid_engine' in response, got: %s", textContent.Text)
 	}
 }
+
+// TestValidateEngineEmpty verifies that an empty engine name returns an
+// error containing "invalid_engine".
+func TestValidateEngineEmpty(t *testing.T) {
+	setupEnginesForTest(t)
+
+	err := ValidateEngine("")
+	if err == nil {
+		t.Fatal("expected error for empty engine name, got nil")
+	}
+
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "invalid_engine") {
+		t.Errorf("expected error to contain 'invalid_engine', got: %s", errMsg)
+	}
+}
+
+// TestValidateModeEmpty verifies that an empty mode returns an error
+// containing "invalid_mode".
+func TestValidateModeEmpty(t *testing.T) {
+	err := ValidateMode("")
+	if err == nil {
+		t.Fatal("expected error for empty mode, got nil")
+	}
+
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "invalid_mode") {
+		t.Errorf("expected error to contain 'invalid_mode', got: %s", errMsg)
+	}
+}
+
+// TestValidateModeCaseSensitive verifies that mode validation is case-sensitive:
+// "COMPLETE" and "Compact" should be rejected (only lowercase accepted).
+func TestValidateModeCaseSensitive(t *testing.T) {
+	for _, mode := range []string{"COMPLETE", "Compact", "COMPACT"} {
+		err := ValidateMode(mode)
+		if err == nil {
+			t.Errorf("expected error for uppercase mode %q, got nil", mode)
+		}
+
+		errMsg := err.Error()
+		if !strings.Contains(errMsg, "invalid_mode") {
+			t.Errorf("expected 'invalid_mode' for mode %q, got: %s", mode, errMsg)
+		}
+	}
+}
+
+// TestValidateRequiredParamsUnknownEngine verifies that an unknown engine name
+// causes RequiredParams to return nil, so ValidateRequiredParams skips validation
+// (ValidateEngine catches invalid names separately).
+func TestValidateRequiredParamsUnknownEngine(t *testing.T) {
+	setupEnginesForTest(t)
+
+	err := ValidateRequiredParams("nonexistent_engine_xyz", map[string]any{"q": "test"})
+	if err != nil {
+		t.Errorf("expected nil error for unknown engine (validation skipped), got: %v", err)
+	}
+}
+
+// TestValidateRequiredParamsNilParams verifies that nil params map doesn't crash
+// the validator. It should report missing required parameters.
+func TestValidateRequiredParamsNilParams(t *testing.T) {
+	setupEnginesForTest(t)
+
+	// google_light requires "q" — nil map access in Go returns zero value safely
+	err := ValidateRequiredParams("google_light", nil)
+	if err == nil {
+		t.Fatal("expected error for nil params with required fields, got nil")
+	}
+
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "missing_params") {
+		t.Errorf("expected 'missing_params' error, got: %s", errMsg)
+	}
+}

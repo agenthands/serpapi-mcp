@@ -359,3 +359,188 @@ func TestSearchDefaultEngine(t *testing.T) {
 		t.Errorf("expected default engine 'google_light', got %q", receivedEngine)
 	}
 }
+
+// TestSearchMalformedJSON verifies that truncated/invalid JSON arguments
+// return IsError=true with "search_error" code instead of crashing.
+func TestSearchMalformedJSON(t *testing.T) {
+	_, _ = setupTestServer(t)
+
+	// Truncated JSON — missing closing brace
+	argsJSON := json.RawMessage(`{"params":`)
+
+	result, err := callWithAPIKey(argsJSON, "test-api-key")
+	if err != nil {
+		t.Fatalf("search tool returned error: %v", err)
+	}
+
+	if !result.IsError {
+		t.Fatal("expected IsError=true for malformed JSON input")
+	}
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	if !ok {
+		t.Fatalf("expected TextContent, got %T", result.Content[0])
+	}
+
+	if !strings.Contains(textContent.Text, "search_error") {
+		t.Errorf("expected error code 'search_error' in response, got: %s", textContent.Text)
+	}
+}
+
+// TestSearchEmptyParams verifies that omitting the "engine" key defaults to google_light.
+func TestSearchEmptyParams(t *testing.T) {
+	var receivedEngine string
+
+	mockSerpAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedEngine = r.URL.Query().Get("engine")
+		resp := map[string]any{"organic_results": []any{}}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}))
+	defer mockSerpAPI.Close()
+
+	serpapiBaseURL = mockSerpAPI.URL
+	defer func() { serpapiBaseURL = "https://serpapi.com/search" }()
+
+	// Include "q" (required param for google_light) but omit "engine"
+	args := map[string]any{
+		"params": map[string]any{"q": "test query"},
+	}
+	argsJSON, _ := json.Marshal(args)
+
+	result, err := callWithAPIKey(argsJSON, "test-api-key")
+	if err != nil {
+		t.Fatalf("search tool returned error: %v", err)
+	}
+
+	if result.IsError {
+		t.Fatalf("expected success, got error: %v", result.Content)
+	}
+
+	if receivedEngine != "google_light" {
+		t.Errorf("expected default engine 'google_light', got %q", receivedEngine)
+	}
+}
+
+// TestSearchNullArguments verifies that nil Arguments do not cause a crash.
+// The handler should treat it as empty input and return an error (missing_api_key
+// if no API key, or validation error if API key is provided).
+func TestSearchNullArguments(t *testing.T) {
+	_, _ = setupTestServer(t)
+
+	req := &mcp.CallToolRequest{
+		Params: &mcp.CallToolParamsRaw{
+			Name:      "search",
+			Arguments: nil,
+		},
+	}
+
+	// Call without API key — should return missing_api_key, not panic
+	result, err := callSearchTool(context.Background(), req)
+	if err != nil {
+		t.Fatalf("search tool returned error: %v", err)
+	}
+
+	if !result.IsError {
+		t.Fatal("expected IsError=true for nil arguments without API key")
+	}
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	if !ok {
+		t.Fatalf("expected TextContent, got %T", result.Content[0])
+	}
+
+	// Should get missing_api_key (no API key in context) or a validation error
+	if !strings.Contains(textContent.Text, "missing_api_key") && !strings.Contains(textContent.Text, "search_error") {
+		t.Errorf("expected 'missing_api_key' or 'search_error' in response, got: %s", textContent.Text)
+	}
+}
+
+// TestSearchCompactModeOnArrayResponse verifies that compact mode handles
+// non-object responses (e.g., JSON arrays) correctly — no field removal,
+// array returned unchanged.
+func TestSearchCompactModeOnArrayResponse(t *testing.T) {
+	mockSerpAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`[1,2,3]`))
+	}))
+	defer mockSerpAPI.Close()
+
+	serpapiBaseURL = mockSerpAPI.URL
+	defer func() { serpapiBaseURL = "https://serpapi.com/search" }()
+
+	// Ensure engines are loaded for validation
+	if engines.EngineNames() == nil {
+		engSrv := mcp.NewServer(
+			&mcp.Implementation{Name: "compact-array-test", Version: "0.0.1"},
+			&mcp.ServerOptions{},
+		)
+		if _, err := engines.LoadAndRegister(engSrv, "../../engines", slog.Default()); err != nil {
+			t.Fatalf("Failed to load engine schemas: %v", err)
+		}
+	}
+
+	args := map[string]any{
+		"params": map[string]any{"q": "test query"},
+		"mode":   "compact",
+	}
+	argsJSON, _ := json.Marshal(args)
+
+	result, err := callWithAPIKey(argsJSON, "test-api-key")
+	if err != nil {
+		t.Fatalf("search tool returned error: %v", err)
+	}
+
+	if result.IsError {
+		t.Fatalf("expected success, got error: %v", result.Content)
+	}
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	if !ok {
+		t.Fatalf("expected TextContent, got %T", result.Content[0])
+	}
+
+	// Array responses should pass through unchanged in compact mode
+	expected := `[1,2,3]`
+	if strings.TrimSpace(textContent.Text) != expected {
+		t.Errorf("expected array response %q, got: %s", expected, textContent.Text)
+	}
+}
+
+// TestSearchCompactModeAllFieldsRemoved verifies that each of the 5
+// compactRemoveFields is individually absent in compact mode.
+func TestSearchCompactModeAllFieldsRemoved(t *testing.T) {
+	_, _ = setupTestServer(t)
+
+	args := map[string]any{
+		"params": map[string]any{"q": "test query"},
+		"mode":   "compact",
+	}
+	argsJSON, _ := json.Marshal(args)
+
+	result, err := callWithAPIKey(argsJSON, "test-api-key")
+	if err != nil {
+		t.Fatalf("search tool returned error: %v", err)
+	}
+
+	if result.IsError {
+		t.Fatalf("expected success, got error: %v", result.Content)
+	}
+
+	textContent, ok := result.Content[0].(*mcp.TextContent)
+	if !ok {
+		t.Fatalf("expected TextContent, got %T", result.Content[0])
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal([]byte(textContent.Text), &body); err != nil {
+		t.Fatalf("failed to parse response JSON: %v", err)
+	}
+
+	// Verify each compactRemoveField is absent
+	for _, field := range compactRemoveFields {
+		if _, exists := body[field]; exists {
+			t.Errorf("compact mode: expected field %q to be removed, but it was present", field)
+		}
+	}
+}
