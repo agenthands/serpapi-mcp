@@ -2,6 +2,7 @@
 /serpapi-mcp          # Built binary (root level)
 /dist/                 # Goreleaser output
 /cmd/serpapi-mcp/serpapi-mcp  # Built binary (cmd dir)
+/coverage.out          # Test coverage output
 
 # Python (legacy still uses these, but main project is Go)
 legacy/.venv/
