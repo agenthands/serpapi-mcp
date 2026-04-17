@@ -326,3 +326,93 @@ func TestIntegrationCORSHeadersOnAuthenticated(t *testing.T) {
 		t.Fatalf("expected CORS origin header on authenticated response, got %q", origin)
 	}
 }
+
+// TestIntegrationExtraPathSegments verifies that requests like /{KEY}/mcp/extra
+// pass auth (key is extracted) even though the MCP handler won't match /mcp/extra.
+// The auth middleware strips only the key segment, leaving /mcp/extra.
+func TestIntegrationExtraPathSegments(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	// Request with extra path segments after /mcp
+	req := httptest.NewRequest(http.MethodPost, "/mykey/mcp/extra", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	// Auth should pass (key "mykey" extracted). NOT 401.
+	if w.Code == http.StatusUnauthorized {
+		t.Fatalf("expected auth to pass for path /mykey/mcp/extra, got 401")
+	}
+}
+
+// TestIntegrationEmptyBearerValue verifies that "Authorization: Bearer " (with
+// space but no token value) is rejected as unauthenticated (401).
+func TestIntegrationEmptyBearerValue(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+	req.Header.Set("Authorization", "Bearer ")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 for empty Bearer value, got %d", w.Code)
+	}
+}
+
+// TestIntegrationSpecialCharAPIKey verifies that API keys containing dashes
+// and underscores are correctly extracted from the URL path.
+func TestIntegrationSpecialCharAPIKey(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodPost, "/key-with-dashes-and_underscores/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	// Auth should pass — the key is extracted correctly. NOT 401.
+	if w.Code == http.StatusUnauthorized {
+		t.Fatalf("expected auth to pass for key with dashes/underscores, got 401")
+	}
+}
+
+// TestIntegrationCORSPreflightWithAuthPath verifies that OPTIONS preflight to
+// /{KEY}/mcp bypasses auth entirely — CORS middleware handles it first.
+func TestIntegrationCORSPreflightWithAuthPath(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodOptions, "/key/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("expected 204 for OPTIONS preflight with auth path, got %d", w.Code)
+	}
+
+	origin := w.Header().Get("Access-Control-Allow-Origin")
+	if origin != "*" {
+		t.Fatalf("expected CORS origin header on preflight, got %q", origin)
+	}
+}

@@ -173,6 +173,96 @@ func TestMissingEnginesDirFailsStartup(t *testing.T) {
 	}
 }
 
+// TestHealthcheckJSONStructure verifies the exact JSON structure returned by /health:
+// {"status":"healthy","service":"SerpApi MCP Server"} with Content-Type application/json.
+func TestHealthcheckJSONStructure(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", w.Code)
+	}
+
+	contentType := w.Header().Get("Content-Type")
+	if contentType != "application/json" {
+		t.Fatalf("expected Content-Type application/json, got %s", contentType)
+	}
+
+	var body healthResponse
+	if err := json.NewDecoder(w.Body).Decode(&body); err != nil {
+		t.Fatalf("failed to decode JSON body: %v", err)
+	}
+	if body.Status != "healthy" {
+		t.Fatalf("expected status 'healthy', got %q", body.Status)
+	}
+	if body.Service != "SerpApi MCP Server" {
+		t.Fatalf("expected service 'SerpApi MCP Server', got %q", body.Service)
+	}
+}
+
+// TestIntegrationAuthDisabledPassThrough verifies that Config{AuthDisabled: true}
+// allows requests to /mcp without authentication — auth middleware is skipped.
+func TestIntegrationAuthDisabledPassThrough(t *testing.T) {
+	cfg := Config{
+		Host:         "0.0.0.0",
+		Port:         8000,
+		CorsOrigins:  "*",
+		AuthDisabled: true,
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	// POST /mcp without auth — auth disabled, so it should reach MCP handler
+	req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	// Auth disabled: should NOT return 401. MCP handler may return 4xx for
+	// bad request, but it's not an auth failure.
+	if w.Code == http.StatusUnauthorized {
+		t.Fatalf("expected auth to be disabled (not 401), got 401")
+	}
+}
+
+// TestIntegrationCorrelationIDInResponse verifies that the X-Correlation-ID
+// header is present in healthcheck responses (correlation middleware is active).
+func TestIntegrationCorrelationIDInResponse(t *testing.T) {
+	cfg := Config{
+		Host:        "0.0.0.0",
+		Port:        8000,
+		CorsOrigins: "*",
+	}
+	srv := NewMCPServer(cfg, "test-version")
+	handler := srv.buildHandler()
+
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	correlationID := w.Header().Get("X-Correlation-ID")
+	if correlationID == "" {
+		t.Fatal("expected X-Correlation-ID header in response, got empty string")
+	}
+	// Correlation IDs are 32-char hex strings (16 bytes encoded as hex)
+	if len(correlationID) != 32 {
+		t.Fatalf("expected 32-char correlation ID, got %d chars: %q", len(correlationID), correlationID)
+	}
+	for _, c := range correlationID {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+			t.Fatalf("expected hex chars in correlation ID, got %q in %q", c, correlationID)
+		}
+	}
+}
+
 func TestEngineResourceReadViaMCP(t *testing.T) {
 	// Create a temp directory with test engine files
 	dir := t.TempDir()
