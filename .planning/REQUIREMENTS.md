@@ -60,12 +60,12 @@ Requirements for the Go rewrite. Each maps to roadmap phases.
 
 ### Testing
 
-- [ ] **TEST-01**: Unit tests for search tool (mocking SerpApi HTTP responses)
-- [ ] **TEST-02**: Unit tests for engine resource loading and schema retrieval
+- [x] **TEST-01**: Unit tests for search tool (mocking SerpApi HTTP responses)
+- [x] **TEST-02**: Unit tests for engine resource loading and schema retrieval
 - [ ] **TEST-03**: Integration tests for auth middleware (path-based and header-based key extraction)
 - [ ] **TEST-04**: Integration tests for healthcheck endpoint
-- [ ] **TEST-05**: Unit tests for compact mode field removal
-- [ ] **TEST-06**: Unit tests for input validation (invalid engine, invalid mode, missing params)
+- [x] **TEST-05**: Unit tests for compact mode field removal
+- [x] **TEST-06**: Unit tests for input validation (invalid engine, invalid mode, missing params)
 
 ## v2 Requirements
 
@@ -132,12 +132,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBS-01 | Phase 3 | Complete |
 | OBS-02 | Phase 3 | Complete |
 | OBS-03 | Phase 3 | Complete |
-| TEST-01 | Phase 4 | Pending |
-| TEST-02 | Phase 4 | Pending |
+| TEST-01 | Phase 4 | Complete |
+| TEST-02 | Phase 4 | Complete |
 | TEST-03 | Phase 4 | Pending |
 | TEST-04 | Phase 4 | Pending |
-| TEST-05 | Phase 4 | Pending |
-| TEST-06 | Phase 4 | Pending |
+| TEST-05 | Phase 4 | Complete |
+| TEST-06 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-04-16T20:56:17.944Z"
-last_activity: 2026-04-16
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-04-17T13:51:03.048Z"
+last_activity: 2026-04-17
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** AI agents can search any SerpApi-supported engine through a single, authenticated MCP endpoint with structured parameter discovery and proper MCP-compliant error handling.
-**Current focus:** Phase 03 — search-validation-observability
+**Current focus:** Phase 04 — testing-release
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-16
+Phase: 04 (testing-release) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-17
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-server-auth-engine-resources P03 | 19min | 2 tasks | 4 files |
 | Phase 03 P01 | 13 | 2 tasks | 5 files |
 | Phase 03-search-validation-observability P02 | 41min | 2 tasks | 6 files |
+| Phase 04-testing-release P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 03-search-validation-observability]: Validation runs before any SerpApi HTTP call (fast errors, no quota waste)
 - [Phase 03-search-validation-observability]: 32-char hex correlation IDs from crypto/rand for request tracing
 - [Phase 03-search-validation-observability]: Client-provided X-Correlation-ID header honored for distributed tracing
+- [Phase 04-testing-release]: envBoolOr falsy values return false not fallback — Implementation only recognizes 1/true/yes as truthy, all other values return false regardless of fallback
 
 ### Pending Todos
 
@@ -95,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T18:04:00.060Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-04-17T13:51:03.045Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

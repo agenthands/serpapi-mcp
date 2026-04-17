@@ -79,7 +79,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Unit test hardening for search, compact mode, validation, engine accessors, and CLI helpers
+- [x] 04-01: Unit test hardening for search, compact mode, validation, engine accessors, and CLI helpers
 - [ ] 04-02: Auth/healthcheck integration gaps, race detection, coverage enforcement, and release build verification
 
 ## Progress
