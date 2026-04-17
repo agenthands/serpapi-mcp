@@ -87,18 +87,26 @@ None — all v1.0 requirements completed.
 | Faithful port + improvements | Keeps API compatibility while fixing known issues (error handling, validation, logging) | ✓ Phase 02: Auth, engine resources, healthcheck, CORS all match Python server behavior |
 | Archive Python to `legacy/` | Preserve reference implementation for comparison during rewrite | ✓ Phase 01: All Python files in legacy/ |
 
-## Current Milestone: v1.0 Go Rewrite
+## Current State
 
-**Goal:** Rewrite the SerpApi MCP server in Go with improved error handling, validation, and multi-platform binary distribution.
+**Shipped:** v1.0 Go Rewrite MVP (2026-04-17)
 
-**Target features:**
-- Faithful port of all existing capabilities (search tool, engine resources, auth, healthcheck, CORS, compact/complete modes)
-- Improved error handling (proper MCP error responses, not string prefixes)
-- Input validation (engine names, parameters, mode)
-- Structured logging with request correlation IDs
-- Startup validation of engine schemas
-- Multi-platform static binary releases (no Docker)
-- Legacy Python code archived in `legacy/`
+**What Shipped:**
+- Go MCP server with Streamable HTTP transport, /health endpoint, CORS, graceful shutdown
+- API key auth middleware (path `/{KEY}/mcp` and `Authorization: Bearer` header)
+- 107 engine schemas loaded at startup with validation, `serpapi://engines` index + per-engine resources
+- SerpApi search tool with complete/compact modes, MCP-compliant errors (429/401/403/5xx → IsError:true)
+- Input validation (engine/mode/required params) before HTTP calls
+- Correlation ID middleware for end-to-end request tracing (32-char hex from crypto/rand)
+- Full test suite (18 unit tests + 7 integration tests, 86% coverage, race-free)
+- Multi-platform static binaries (5 platforms via goreleaser)
+- CI workflow (golangci-lint, go vet, go test -race on push + PR)
+
+**Stats:** 4 phases, 10 plans, 3,500 lines of Go, 44 days development (2025-03-04 → 2026-04-17)
+
+## Next Milestone Goals
+
+Planning next milestone. Run `/gsd-new-milestone` to start.
 
 ## Evolution
 
@@ -119,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-04-16 after Phase 03 completion*
+*Last updated: 2026-04-17 after v1.0 milestone completion*
