@@ -384,3 +384,83 @@ func TestLoadAndRegister_RealEnginesDir(t *testing.T) {
 		t.Fatalf("expected engine 'google_light', got %v", schema["engine"])
 	}
 }
+
+// TestRequiredParamsForEngineWithRequired verifies that RequiredParams returns
+// the correct list of required parameter names for an engine with required params.
+func TestRequiredParamsForEngineWithRequired(t *testing.T) {
+	dir := t.TempDir()
+	content := `{"engine":"google_light","params":{"q":{"required":true,"description":"query"},"hl":{"required":false,"description":"language"}}}`
+	createTestEngineFile(t, dir, "google_light", content)
+
+	srv, _, _ := setupTestServer(t)
+
+	logger := slog.Default()
+	_, err := LoadAndRegister(srv, dir, logger)
+	if err != nil {
+		t.Fatalf("LoadAndRegister returned error: %v", err)
+	}
+
+	required := RequiredParams("google_light")
+	if len(required) != 1 || required[0] != "q" {
+		t.Errorf("expected RequiredParams to return [\"q\"], got: %v", required)
+	}
+}
+
+// TestRequiredParamsForEngineWithNoRequired verifies that RequiredParams returns
+// nil or empty for an engine with no required params.
+func TestRequiredParamsForEngineWithNoRequired(t *testing.T) {
+	dir := t.TempDir()
+	content := `{"engine":"sandbox","params":{"q":{"required":false,"description":"optional query"}}}`
+	createTestEngineFile(t, dir, "sandbox", content)
+
+	srv, _, _ := setupTestServer(t)
+
+	logger := slog.Default()
+	_, err := LoadAndRegister(srv, dir, logger)
+	if err != nil {
+		t.Fatalf("LoadAndRegister returned error: %v", err)
+	}
+
+	required := RequiredParams("sandbox")
+	if len(required) != 0 {
+		t.Errorf("expected empty or nil required params, got: %v", required)
+	}
+}
+
+// TestEngineNamesReturnsSortedCopy verifies that EngineNames returns a sorted
+// list and that modifying the returned slice does not affect future calls.
+func TestEngineNamesReturnsSortedCopy(t *testing.T) {
+	dir := t.TempDir()
+	createTestEngineFile(t, dir, "charlie", `{"engine":"charlie","params":{}}`)
+	createTestEngineFile(t, dir, "alpha", `{"engine":"alpha","params":{}}`)
+	createTestEngineFile(t, dir, "bravo", `{"engine":"bravo","params":{}}`)
+
+	srv, _, _ := setupTestServer(t)
+
+	logger := slog.Default()
+	_, err := LoadAndRegister(srv, dir, logger)
+	if err != nil {
+		t.Fatalf("LoadAndRegister returned error: %v", err)
+	}
+
+	names := EngineNames()
+	expected := []string{"alpha", "bravo", "charlie"}
+	if len(names) != len(expected) {
+		t.Fatalf("expected %d engines, got %d", len(expected), len(names))
+	}
+	for i, name := range expected {
+		if names[i] != name {
+			t.Errorf("expected names[%d]=%q, got %q", i, name, names[i])
+		}
+	}
+
+	// Mutate the returned slice and verify EngineNames returns a fresh copy
+	names[0] = "MUTATED"
+	freshNames := EngineNames()
+	if freshNames[0] == "MUTATED" {
+		t.Error("EngineNames() returned the same slice reference — should return a copy")
+	}
+	if freshNames[0] != "alpha" {
+		t.Errorf("expected freshNames[0]=\"alpha\", got %q", freshNames[0])
+	}
+}
