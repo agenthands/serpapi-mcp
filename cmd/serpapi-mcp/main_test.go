@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 )
 
 // TestEnvOrSetEnv verifies that envOr returns the environment value when set.
@@ -116,5 +120,58 @@ func TestEnvBoolOrUnset(t *testing.T) {
 
 	if got := envBoolOr(key, false); got {
 		t.Errorf("envBoolOr(%s, false) = true, want false (fallback)", key)
+	}
+}
+
+// TestRunStartupWithGracefulShutdown verifies that run() starts the server,
+// loads engines, and shuts down cleanly when the context is cancelled.
+func TestRunStartupWithGracefulShutdown(t *testing.T) {
+	// Create temp directory with a minimal engine JSON
+	tmpDir := t.TempDir()
+	engineJSON := `{"engine":"test_engine","params":{"q":{"required":true,"description":"query"}}}`
+	if err := os.WriteFile(filepath.Join(tmpDir, "test_engine.json"), []byte(engineJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Context that cancels after 200ms (simulates SIGINT)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var stdout, stderr bytes.Buffer
+	args := []string{
+		"--host=127.0.0.1",
+		"--port=0", // ephemeral port
+		"--engines-dir=" + tmpDir,
+		"--auth-disabled",
+	}
+
+	err := run(ctx, args, &stdout, &stderr)
+	// Server should exit cleanly when context expires — context.DeadlineExceeded is acceptable
+	if err != nil && err != context.DeadlineExceeded {
+		t.Errorf("run() returned unexpected error: %v", err)
+	}
+
+	// Verify startup banner was printed
+	if !bytes.Contains(stdout.Bytes(), []byte("serpapi-mcp")) {
+		t.Errorf("stdout should contain startup banner, got: %q", stdout.String())
+	}
+}
+
+// TestRunBadEnginesDir verifies that run() returns an error when the engines
+// directory does not exist.
+func TestRunBadEnginesDir(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	var stdout, stderr bytes.Buffer
+	args := []string{
+		"--host=127.0.0.1",
+		"--port=0",
+		"--engines-dir=/nonexistent/path/engines",
+	}
+
+	err := run(ctx, args, &stdout, &stderr)
+	if err == nil {
+		t.Error("expected error for nonexistent engines dir, got nil")
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -23,16 +24,30 @@ var (
 )
 
 func main() {
-	// CLI flags with defaults matching Python server
-	hostFlag := flag.String("host", envOr("MCP_HOST", "0.0.0.0"), "Host to bind the server to")
-	portFlag := flag.Int("port", envIntOr("MCP_PORT", 8000), "Port to bind the server to")
-	corsOriginsFlag := flag.String("cors-origins", envOr("MCP_CORS_ORIGINS", "*"), "Comma-separated list of allowed CORS origins")
-	authDisabledFlag := flag.Bool("auth-disabled", envBoolOr("MCP_AUTH_DISABLED", false), "Disable API key authentication (for testing)")
-	enginesDirFlag := flag.String("engines-dir", envOr("ENGINES_DIR", "engines"), "Path to directory containing engine JSON schemas")
-	flag.Parse()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	// Print startup banner
-	fmt.Printf("serpapi-mcp %s (commit: %s, built: %s)\n", version, commit, date)
+	if err := run(ctx, os.Args[1:], os.Stdout, os.Stderr); err != nil {
+		fmt.Fprintf(os.Stderr, "server failed: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+// run contains the server startup logic extracted from main() for testability.
+// ctx controls graceful shutdown, args are CLI arguments (without program name).
+func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) error {
+	fs := flag.NewFlagSet("serpapi-mcp", flag.ContinueOnError)
+	hostFlag := fs.String("host", envOr("MCP_HOST", "0.0.0.0"), "Host to bind the server to")
+	portFlag := fs.Int("port", envIntOr("MCP_PORT", 8000), "Port to bind the server to")
+	corsOriginsFlag := fs.String("cors-origins", envOr("MCP_CORS_ORIGINS", "*"), "Comma-separated list of allowed CORS origins")
+	authDisabledFlag := fs.Bool("auth-disabled", envBoolOr("MCP_AUTH_DISABLED", false), "Disable API key authentication (for testing)")
+	enginesDirFlag := fs.String("engines-dir", envOr("ENGINES_DIR", "engines"), "Path to directory containing engine JSON schemas")
+
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	fmt.Fprintf(stdout, "serpapi-mcp %s (commit: %s, built: %s)\n", version, commit, date)
 
 	cfg := server.Config{
 		Host:         *hostFlag,
@@ -43,26 +58,16 @@ func main() {
 
 	mcpServer := server.NewMCPServer(cfg, version)
 
-	// Load engine schemas and register MCP resources (fail-fast on corrupt/missing JSON)
 	engineCount, err := engines.LoadAndRegister(mcpServer.MCPServer, *enginesDirFlag, slog.Default())
 	if err != nil {
-		slog.Error("failed to load engine schemas", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to load engine schemas: %w", err)
 	}
 	mcpServer.SetEngineCount(engineCount)
 
-	// Register the search tool
 	search.RegisterSearchTool(mcpServer.MCPServer, slog.Default())
 	slog.Info("search tool registered")
 
-	// Set up signal handling for graceful shutdown
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	if err := mcpServer.Run(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "server failed: %v\n", err)
-		os.Exit(1)
-	}
+	return mcpServer.Run(ctx)
 }
 
 // envOr returns the value of the environment variable named key, or the
