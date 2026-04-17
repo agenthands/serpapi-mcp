@@ -81,7 +81,7 @@ Plans:
 Plans:
 - [x] 04-01: Unit test hardening for search, compact mode, validation, engine accessors, and CLI helpers
 - [x] 04-02: Auth/healthcheck integration gaps, race detection, coverage enforcement, and release build verification
-- [ ] 04-03: Gap closure — CI Go version fix, coverage must-have revision via run() extraction, Makefile lint/vet, dynamic engine count
+- [x] 04-03: Gap closure — CI Go version fix, coverage must-have revision via run() extraction, Makefile lint/vet, dynamic engine count
 
 ## Progress
 
