@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -325,8 +326,9 @@ func TestLoadAndRegister_EmptyDir(t *testing.T) {
 	}
 }
 
-// TestLoadAndRegister_RealEnginesDir verifies all 107 engine JSON files
+// TestLoadAndRegister_RealEnginesDir verifies all engine JSON files
 // from the project's engines/ directory can be loaded and registered.
+// This test dynamically counts JSON files instead of hardcoding the count.
 // This test is skipped if the engines/ directory is not found (e.g., in CI
 // with different working directory).
 func TestLoadAndRegister_RealEnginesDir(t *testing.T) {
@@ -343,17 +345,32 @@ func TestLoadAndRegister_RealEnginesDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadAndRegister with real engines dir returned error: %v", err)
 	}
-	if count != 107 {
-		t.Fatalf("expected 107 engines, got %d", count)
+
+	// Dynamically count JSON files instead of hardcoding
+	entries, err := os.ReadDir(enginesDir)
+	if err != nil {
+		t.Skipf("engines directory not readable: %v", err)
+	}
+	jsonCount := 0
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".json") {
+			jsonCount++
+		}
 	}
 
-	// Verify we can list all 108 resources (107 engines + index)
+	// Verify engine count matches JSON files found
+	if count != jsonCount {
+		t.Errorf("expected %d engines (from %d JSON files), got %d", jsonCount, jsonCount, count)
+	}
+
+	// Resources = engine schemas + 1 index resource
+	expectedResources := jsonCount + 1
 	result, err := cs.ListResources(ctx, nil)
 	if err != nil {
 		t.Fatalf("ListResources failed: %v", err)
 	}
-	if len(result.Resources) != 108 {
-		t.Fatalf("expected 108 resources (1 index + 107 engines), got %d", len(result.Resources))
+	if len(result.Resources) != expectedResources {
+		t.Errorf("expected %d resources, got %d", expectedResources, len(result.Resources))
 	}
 
 	// Read the index and verify count
@@ -366,8 +383,8 @@ func TestLoadAndRegister_RealEnginesDir(t *testing.T) {
 	if err := json.Unmarshal([]byte(indexResult.Contents[0].Text), &index); err != nil {
 		t.Fatalf("failed to parse engines index: %v", err)
 	}
-	if int(index["count"].(float64)) != 107 {
-		t.Fatalf("expected count 107 in index, got %v", index["count"])
+	if int(index["count"].(float64)) != jsonCount {
+		t.Fatalf("expected count %d in index, got %v", jsonCount, index["count"])
 	}
 
 	// Read one per-engine resource (google_light)

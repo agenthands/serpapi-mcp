@@ -1,4 +1,4 @@
-.PHONY: test test-race cover
+.PHONY: test test-race cover lint vet
 
 test:
 	go test -count=1 ./...
@@ -12,3 +12,9 @@ cover:
 	@echo ""
 	@echo "Per-package coverage:"
 	@go tool cover -func=coverage.out | grep -E "^github.com" | awk '{print $$1, $$3}'
+
+lint:
+	golangci-lint run ./...
+
+vet:
+	go vet ./...
