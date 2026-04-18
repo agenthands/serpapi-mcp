@@ -32,7 +32,10 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 
 ### Active
 
-None — all v1.0 requirements completed.
+- [ ] DOC-01: User can read comprehensive architecture documentation (ARCHITECTURE.md)
+- [ ] DOC-02: User can read project overview and quickstart (README.md)
+- [ ] DOC-03: User can follow installation instructions for all platforms (INSTALL.md)
+- [ ] DOC-04: User can learn how to configure and use the server (USAGE.md)
 
 ### Validated in Phase 03: Search, Validation & Observability
 
@@ -104,6 +107,16 @@ None — all v1.0 requirements completed.
 
 **Stats:** 4 phases, 10 plans, 3,500 lines of Go, 44 days development (2025-03-04 → 2026-04-17)
 
+## Current Milestone: v1.1 Documentation
+
+**Goal:** Comprehensive documentation for both users (MCP client integrators) and contributors (codebase developers), covering architecture, testing flows, installation, and usage.
+
+**Target features:**
+- ARCHITECTURE.md — Go codebase structure, component relationships, request flows (with diagrams), testing strategy
+- README.md — Project overview, quickstart, badges, links to detailed docs
+- INSTALL.md — Installation instructions for all platforms (binary download, Go install, from source)
+- USAGE.md — How to use the server: running, configuring auth, MCP client integration, engines, error handling
+
 ## Next Milestone Goals
 
 Planning next milestone. Run `/gsd-new-milestone` to start.
@@ -127,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-04-17 after v1.0 milestone completion*
+*Last updated: 2026-04-18 after starting v1.1 milestone*
