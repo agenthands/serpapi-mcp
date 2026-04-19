@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Documentation
-status: defining_requirements
+status: ready_to_plan
 stopped_at: ""
-last_updated: "2026-04-18T00:00:00.000Z"
-last_activity: 2026-04-18
+last_updated: "2026-04-19T00:00:00.000Z"
+last_activity: 2026-04-19
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,43 +21,38 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** AI agents can search any SerpApi-supported engine through a single, authenticated MCP endpoint with structured parameter discovery and proper MCP-compliant error handling.
-**Current focus:** Defining requirements for v1.1 Documentation
+**Current focus:** Phase 5: Architecture Documentation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-18 — Milestone v1.1 started
+Phase: 5 of 7 (Architecture Documentation)
+Plan: 0/? in current phase
+Status: Ready to plan
+Last activity: 2026-04-19 — Roadmap created for v1.1
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed (v1.0): 9
+- Average duration: ~11 min
+- Total execution time: ~1.7 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | 0 | — | — |
+| 01 Foundation | 2 | 10min | 5min |
+| 02 Server Auth | 3 | 33min | 11min |
+| 03 Search | 2 | 54min | 27min |
+| 04 Testing | 2 | 5min | 2.5min |
 
 **Recent Trend:**
-
-- No plans completed yet
+- Last 5 plans: 41min, 13min, 3min, 2min
+- Trend: Stable
 
 *Updated after each plan completion*
-| Phase 01 P01 | 4min | 2 tasks | 17 files |
-| Phase 01 P02 | 6min | 2 tasks | 6 files |
-| Phase 02 P01 | 8min | 2 tasks | 5 files |
-| Phase 02 P02 | 6min | 2 tasks | 4 files |
-| Phase 02-server-auth-engine-resources P03 | 19min | 2 tasks | 4 files |
-| Phase 03 P01 | 13 | 2 tasks | 5 files |
-| Phase 03-search-validation-observability P02 | 41min | 2 tasks | 6 files |
-| Phase 04-testing-release P01 | 3min | 2 tasks | 4 files |
-| Phase 04 P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -66,27 +61,11 @@ Last activity: 2026-04-18 — Milestone v1.1 started
 - Go rewrite replaces Python; legacy code archived in `legacy/`
 - Official Go MCP SDK (`modelcontextprotocol/go-sdk`) as only external dependency
 - Multi-platform static binaries via goreleaser (no Docker)
-- Observability integrated into search phase (coarse granularity)
-- Testing as final phase after all features built
-- [Phase 01]: Go 1.25.0 directive in go.mod instead of 1.23 — Go toolchain management auto-upgrades; cannot be overridden without breaking go mod tidy
-- [Phase 01]: Blank import of go-sdk/mcp in main.go keeps dependency as direct in go.mod; will be replaced with actual usage in Phase 2
-- [Phase 01]: CI triggers on pull_request to main only per D-07; goreleaser handles cross-platform builds regardless of CI Go version — Single Go version CI with goreleaser cross-compilation is the standard Go release pattern
-- [Phase 02]: Disabled SDK's DisableLocalhostProtection on StreamableHTTPOptions — MCP clients connect remotely from non-localhost origins
-- [Phase 02]: Used net.Listener before http.Server.Serve for immediate port discovery (needed when Port=0)
-- [Phase 02]: CORS → Auth → mux handler ordering so OPTIONS preflight bypasses auth before CORS responds with headers
-- [Phase 02]: authOrPassthrough helper wraps authMiddleware conditionally based on Config.AuthDisabled for testing
-- [Phase 02]: LoadAndRegister takes enginesDir as parameter for testability and CLI/ENV override
-- [Phase 02]: Engine field must match filename stem - stricter validation than Python version
-- [Phase 02]: SetEngineCount method on MCPServer for logging engine count at startup
-- [Phase 03]: toolError flat JSON error body with IsError=true instead of SetError string prefix
-- [Phase 03]: serpapiBaseURL as package var not env var for test override
-- [Phase 03]: ContextWithAPIKey helper added to server package for test injection of API keys
-- [Phase 03-search-validation-observability]: Validation runs before any SerpApi HTTP call (fast errors, no quota waste)
-- [Phase 03-search-validation-observability]: 32-char hex correlation IDs from crypto/rand for request tracing
-- [Phase 03-search-validation-observability]: Client-provided X-Correlation-ID header honored for distributed tracing
-- [Phase 04-testing-release]: envBoolOr falsy values return false not fallback — Implementation only recognizes 1/true/yes as truthy, all other values return false regardless of fallback
-- [Phase 04]: No production code changes needed — existing auth middleware correctly handles all edge cases
-- [Phase 04]: CI uses -race flag for all test runs; Makefile provides single entry point for test/race/cover
+- [Phase 02]: CORS → Auth → mux handler ordering for preflight compatibility
+- [Phase 02]: Engine field must match filename stem
+- [Phase 03]: toolError flat JSON error body with IsError=true
+- [Phase 03]: 32-char hex correlation IDs from crypto/rand
+- [Phase 04]: CI uses -race flag for all test runs
 
 ### Pending Todos
 
@@ -94,10 +73,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Engine schema generation still requires Python `build-engines.py` in CI (ENG-05 accepts this)
+- Engine schema generation still requires Python `build-engines.py` in CI (accepted for v1.0)
 
 ## Session Continuity
 
-Last session: 2026-04-17T13:54:43.363Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-04-19
+Stopped at: Roadmap created for v1.1 Documentation (Phases 5-7)
 Resume file: None

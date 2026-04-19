@@ -64,31 +64,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | — | Pending |
-| ARCH-02 | — | Pending |
-| ARCH-03 | — | Pending |
-| ARCH-04 | — | Pending |
-| ARCH-05 | — | Pending |
-| ARCH-06 | — | Pending |
-| ARCH-07 | — | Pending |
-| READ-01 | — | Pending |
-| READ-02 | — | Pending |
-| READ-03 | — | Pending |
-| INST-01 | — | Pending |
-| INST-02 | — | Pending |
-| INST-03 | — | Pending |
-| USE-01 | — | Pending |
-| USE-02 | — | Pending |
-| USE-03 | — | Pending |
-| USE-04 | — | Pending |
-| USE-05 | — | Pending |
-| USE-06 | — | Pending |
+| ARCH-01 | Phase 5 | Pending |
+| ARCH-02 | Phase 5 | Pending |
+| ARCH-03 | Phase 5 | Pending |
+| ARCH-04 | Phase 5 | Pending |
+| ARCH-05 | Phase 5 | Pending |
+| ARCH-06 | Phase 5 | Pending |
+| ARCH-07 | Phase 5 | Pending |
+| READ-01 | Phase 6 | Pending |
+| READ-02 | Phase 6 | Pending |
+| READ-03 | Phase 6 | Pending |
+| INST-01 | Phase 7 | Pending |
+| INST-02 | Phase 7 | Pending |
+| INST-03 | Phase 7 | Pending |
+| USE-01 | Phase 7 | Pending |
+| USE-02 | Phase 7 | Pending |
+| USE-03 | Phase 7 | Pending |
+| USE-04 | Phase 7 | Pending |
+| USE-05 | Phase 7 | Pending |
+| USE-06 | Phase 7 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-18*
-*Last updated: 2026-04-18 after initial definition*
+*Last updated: 2026-04-19 after roadmap creation*
