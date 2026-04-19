@@ -59,7 +59,7 @@ Plans:
 
 **Milestone Goal:** Comprehensive documentation for both users (MCP client integrators) and contributors (codebase developers), covering architecture, testing flows, installation, and usage.
 
-- [ ] **Phase 5: Architecture Documentation** - ARCHITECTURE.md with package layout, request flows, subsystem designs, and testing/CI strategy
+- [x] **Phase 5: Architecture Documentation** - ARCHITECTURE.md with package layout, request flows, subsystem designs, and testing/CI strategy (2026-04-19)
 - [ ] **Phase 6: README** - Project overview, quickstart, and navigation links to all detailed docs
 - [ ] **Phase 7: Installation & Usage** - INSTALL.md and USAGE.md covering all platforms, configuration, MCP client integration, and troubleshooting
 
@@ -77,8 +77,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Package layout, startup & request flow diagrams (ARCH-01, ARCH-02)
-- [ ] 05-02: Subsystem designs, testing & CI/CD sections (ARCH-03–ARCH-07)
+- [x] 05-01: Package layout, startup & request flow diagrams (ARCH-01, ARCH-02)
+- [x] 05-02: Subsystem designs, testing & CI/CD sections (ARCH-03–ARCH-07)
 
 ### Phase 6: README
 **Goal**: Any visitor can quickly understand what the project does and get started in under 5 minutes
@@ -112,6 +112,6 @@ Phases execute in numeric order: 5 → 6 → 7
 | 2. Server, Auth & Engine Resources | v1.0 | 3/3 | Complete | 2026-04-17 |
 | 3. Search, Validation & Observability | v1.0 | 2/2 | Complete | 2026-04-17 |
 | 4. Testing & Release | v1.0 | 2/2 | Complete | 2026-04-17 |
-| 5. Architecture Documentation | v1.1 | 0/? | Not started | - |
+| 5. Architecture Documentation | v1.1 | 2/2 | Complete | 2026-04-19 |
 | 6. README | v1.1 | 0/? | Not started | - |
 | 7. Installation & Usage | v1.1 | 0/? | Not started | - |
