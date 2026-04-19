@@ -74,7 +74,11 @@ Plans:
   2. Contributor can trace an HTTP request from entry to SerpApi response using included diagrams
   3. Contributor can explain engine schema loading, search execution, observability design, and CI/CD pipeline after reading ARCHITECTURE.md
   4. Contributor can understand the test suite structure (unit vs integration, how to run, coverage targets) from ARCHITECTURE.md
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01: Package layout, startup & request flow diagrams (ARCH-01, ARCH-02)
+- [ ] 05-02: Subsystem designs, testing & CI/CD sections (ARCH-03–ARCH-07)
 
 ### Phase 6: README
 **Goal**: Any visitor can quickly understand what the project does and get started in under 5 minutes
