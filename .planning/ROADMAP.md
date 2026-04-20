@@ -105,7 +105,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Write INSTALL.md (binary download, go install, build from source)
+- [x] 07-01: Write INSTALL.md (binary download, go install, build from source)
 - [ ] 07-02: Write USAGE.md (configuration, auth, MCP clients, engines, errors, troubleshooting)
 
 ## Progress

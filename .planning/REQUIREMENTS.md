@@ -25,9 +25,9 @@ Requirements for documentation milestone. Each maps to roadmap phases.
 
 ### Installation
 
-- [ ] **INST-01**: User can install pre-built binaries for all 5 supported platforms
-- [ ] **INST-02**: User can install via `go install` from source
-- [ ] **INST-03**: User can build from source with goreleaser or `go build`
+- [x] **INST-01**: User can install pre-built binaries for all 5 supported platforms
+- [x] **INST-02**: User can install via `go install` from source
+- [x] **INST-03**: User can build from source with goreleaser or `go build`
 
 ### Usage
 
@@ -74,9 +74,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | READ-01 | Phase 6 | Pending |
 | READ-02 | Phase 6 | Pending |
 | READ-03 | Phase 6 | Pending |
-| INST-01 | Phase 7 | Pending |
-| INST-02 | Phase 7 | Pending |
-| INST-03 | Phase 7 | Pending |
+| INST-01 | Phase 7 | Complete |
+| INST-02 | Phase 7 | Complete |
+| INST-03 | Phase 7 | Complete |
 | USE-01 | Phase 7 | Pending |
 | USE-02 | Phase 7 | Pending |
 | USE-03 | Phase 7 | Pending |
