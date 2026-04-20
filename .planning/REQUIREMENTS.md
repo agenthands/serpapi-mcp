@@ -31,12 +31,12 @@ Requirements for documentation milestone. Each maps to roadmap phases.
 
 ### Usage
 
-- [ ] **USE-01**: User can configure and run the server (env vars, CLI flags, port/host binding)
-- [ ] **USE-02**: User can configure API key authentication (path-based and header-based)
-- [ ] **USE-03**: User can integrate the server with an MCP client (connection URL, transport config)
-- [ ] **USE-04**: User can discover available engines and their parameters via MCP resources
-- [ ] **USE-05**: User can interpret error responses and understand common failure modes
-- [ ] **USE-06**: User can troubleshoot common issues (auth failures, missing engines, connection errors)
+- [x] **USE-01**: User can configure and run the server (env vars, CLI flags, port/host binding)
+- [x] **USE-02**: User can configure API key authentication (path-based and header-based)
+- [x] **USE-03**: User can integrate the server with an MCP client (connection URL, transport config)
+- [x] **USE-04**: User can discover available engines and their parameters via MCP resources
+- [x] **USE-05**: User can interpret error responses and understand common failure modes
+- [x] **USE-06**: User can troubleshoot common issues (auth failures, missing engines, connection errors)
 
 ## v2 Requirements
 
@@ -77,12 +77,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INST-01 | Phase 7 | Complete |
 | INST-02 | Phase 7 | Complete |
 | INST-03 | Phase 7 | Complete |
-| USE-01 | Phase 7 | Pending |
-| USE-02 | Phase 7 | Pending |
-| USE-03 | Phase 7 | Pending |
-| USE-04 | Phase 7 | Pending |
-| USE-05 | Phase 7 | Pending |
-| USE-06 | Phase 7 | Pending |
+| USE-01 | Phase 7 | Complete |
+| USE-02 | Phase 7 | Complete |
+| USE-03 | Phase 7 | Complete |
+| USE-04 | Phase 7 | Complete |
+| USE-05 | Phase 7 | Complete |
+| USE-06 | Phase 7 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 16 total

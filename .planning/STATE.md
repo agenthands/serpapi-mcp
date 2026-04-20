@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Documentation
-status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-04-20T10:52:37.855Z"
+status: verifying
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-20T10:54:53.746Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 67
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 Phase: 07 (Installation & Usage) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-20
 
 Progress: [██████░░░░] 67%
@@ -56,6 +56,7 @@ Progress: [██████░░░░] 67%
 
 *Updated after each plan completion*
 | Phase 07 P01 | 3min | 1 tasks | 1 files |
+| Phase 07 P02 | 5min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Progress: [██████░░░░] 67%
 - [Phase 04]: CI uses -race flag for all test runs
 - [Phase 07]: Three installation methods as separate top-level sections with platform-specific commands
 - [Phase 07]: 5 goreleaser platform targets get explicit curl/tar commands, Windows uses PowerShell
+- [Phase 07]: Path-based auth documented as recommended method — Per D-08 in CONTEXT.md
+- [Phase 07]: All error responses use exact JSON format from source code — Ensures accuracy and direct mapping to codebase
+- [Phase 07]: Both hosted and self-hosted URL variants for each MCP client — Per D-08 in CONTEXT.md
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-20T10:52:37.853Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-04-20T10:54:53.744Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
