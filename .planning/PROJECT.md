@@ -30,12 +30,22 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 - ✓ CORS support — configurable origins, handles preflight
 - ✓ Startup validation of engine schemas (fail fast on corrupt/missing JSON) — LoadAndRegister validates all schemas before serving
 
+### Validated in Phase 07: Installation & Usage
+
+- ✓ DOC-03: User can follow installation instructions for all platforms (INSTALL.md) — binary download (5 platforms), go install, build from source
+- ✓ DOC-04: User can learn how to configure and use the server (USAGE.md) — CLI flags, auth, MCP clients, engines, errors, troubleshooting
+
 ### Active
 
-- [ ] DOC-01: User can read comprehensive architecture documentation (ARCHITECTURE.md)
-- [ ] DOC-02: User can read project overview and quickstart (README.md)
-- [ ] DOC-03: User can follow installation instructions for all platforms (INSTALL.md)
-- [ ] DOC-04: User can learn how to configure and use the server (USAGE.md)
+None — all documentation requirements validated.
+
+### Validated in Phase 05: Architecture Documentation
+
+- ✓ DOC-01: User can read comprehensive architecture documentation (ARCHITECTURE.md)
+
+### Validated in Phase 06: README
+
+- ✓ DOC-02: User can read project overview and quickstart (README.md)
 
 ### Validated in Phase 03: Search, Validation & Observability
 
@@ -92,7 +102,7 @@ AI agents can search any SerpApi-supported engine through a single, authenticate
 
 ## Current State
 
-**Shipped:** v1.0 Go Rewrite MVP (2026-04-17)
+**Shipped:** v1.0 Go Rewrite MVP (2026-04-17), v1.1 Documentation (2026-04-20)
 
 **What Shipped:**
 - Go MCP server with Streamable HTTP transport, /health endpoint, CORS, graceful shutdown
@@ -140,4 +150,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-04-18 after starting v1.1 milestone*
+*Last updated: 2026-04-20 after Phase 07 completion*
