@@ -88,7 +88,10 @@ Plans:
   1. Visitor can read README.md and understand what the server does and who it's for
   2. Visitor can follow the quickstart guide and have a running server in under 5 minutes
   3. Visitor can find links to all detailed documentation files (ARCHITECTURE.md, INSTALL.md, USAGE.md)
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 06-01: Write new README.md (README overview, dual-path quickstart, brief auth & search, doc links, license)
 
 ### Phase 7: Installation & Usage
 **Goal**: Users can install, configure, run, integrate, and troubleshoot the server using complete operational guides
