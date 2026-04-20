@@ -60,7 +60,7 @@ Plans:
 **Milestone Goal:** Comprehensive documentation for both users (MCP client integrators) and contributors (codebase developers), covering architecture, testing flows, installation, and usage.
 
 - [x] **Phase 5: Architecture Documentation** - ARCHITECTURE.md with package layout, request flows, subsystem designs, and testing/CI strategy (2026-04-19)
-- [ ] **Phase 6: README** - Project overview, quickstart, and navigation links to all detailed docs
+- [x] **Phase 6: README** - Project overview, quickstart, and navigation links to all detailed docs (2026-04-20)
 - [ ] **Phase 7: Installation & Usage** - INSTALL.md and USAGE.md covering all platforms, configuration, MCP client integration, and troubleshooting
 
 ## Phase Details
@@ -91,7 +91,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01: Write new README.md (README overview, dual-path quickstart, brief auth & search, doc links, license)
+- [x] 06-01: Write new README.md (README overview, dual-path quickstart, brief auth & search, doc links, license)
 
 ### Phase 7: Installation & Usage
 **Goal**: Users can install, configure, run, integrate, and troubleshoot the server using complete operational guides
@@ -116,5 +116,5 @@ Phases execute in numeric order: 5 → 6 → 7
 | 3. Search, Validation & Observability | v1.0 | 2/2 | Complete | 2026-04-17 |
 | 4. Testing & Release | v1.0 | 2/2 | Complete | 2026-04-17 |
 | 5. Architecture Documentation | v1.1 | 2/2 | Complete | 2026-04-19 |
-| 6. README | v1.1 | 0/? | Not started | - |
+| 6. README | v1.1 | 1/1 | Complete | 2026-04-20 |
 | 7. Installation & Usage | v1.1 | 0/? | Not started | - |
