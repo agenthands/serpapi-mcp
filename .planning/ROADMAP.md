@@ -102,7 +102,11 @@ Plans:
   2. User can configure and run the server with env vars, CLI flags, and auth settings by following USAGE.md
   3. User can connect an MCP client and discover/perform searches using the tool by following USAGE.md
   4. User can interpret error responses and troubleshoot common issues using USAGE.md
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01: Write INSTALL.md (binary download, go install, build from source)
+- [ ] 07-02: Write USAGE.md (configuration, auth, MCP clients, engines, errors, troubleshooting)
 
 ## Progress
 
